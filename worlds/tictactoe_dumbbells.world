@@ -86,102 +86,6 @@
       <elevation>0</elevation>
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
-    <model name='robot_dumbbell_red'>
-      <pose>3.971324 1.997633 0.1905 1.5708 -0 0</pose>
-      <static>0</static>
-      <link name='body'>
-        <inertial>
-          <mass>0.05</mass>
-          <inertia>
-            <ixx>0.000669353</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.000133871</iyy>
-            <iyz>0</iyz>
-            <izz>0.000669353</izz>
-          </inertia>
-          <pose>0 0 0 0 -0 0</pose>
-        </inertial>
-        <visual name='visual'>
-          <geometry>
-            <mesh>
-              <uri>model://cmsc20600_final_project/models/robot_dumbbell_red/meshes/robot_dumbbell_red.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
-        <collision name='collision'>
-          <geometry>
-            <mesh>
-              <uri>model://cmsc20600_final_project/models/robot_dumbbell_red/meshes/robot_dumbbell_red.dae</uri>
-            </mesh>
-          </geometry>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <bounce/>
-            <friction>
-              <torsional>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-    </model>
-    <model name='robot_dumbbell_blue'>
-      <pose>-4.007257 1.988295 0.1905 1.5708 -0 0</pose>
-      <static>0</static>
-      <link name='body'>
-        <inertial>
-          <mass>0.05</mass>
-          <inertia>
-            <ixx>0.000669353</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.000133871</iyy>
-            <iyz>0</iyz>
-            <izz>0.000669353</izz>
-          </inertia>
-          <pose>0 0 0 0 -0 0</pose>
-        </inertial>
-        <visual name='visual'>
-          <geometry>
-            <mesh>
-              <uri>model://cmsc20600_final_project/models/robot_dumbbell_blue/meshes/robot_dumbbell_blue.dae</uri>
-            </mesh>
-          </geometry>
-        </visual>
-        <collision name='collision'>
-          <geometry>
-            <mesh>
-              <uri>model://cmsc20600_final_project/models/robot_dumbbell_blue/meshes/robot_dumbbell_blue.dae</uri>
-            </mesh>
-          </geometry>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <bounce/>
-            <friction>
-              <torsional>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-    </model>
     <state world_name='default'>
       <sim_time>205 968000000</sim_time>
       <real_time>207 206680847</real_time>
@@ -382,7 +286,55 @@
       </link>
       <static>1</static>
     </model>
-    <model name='robot_dumbbell_blue_clone'>
+     <model name='robot_dumbbell_blue1'>
+      <pose>-4.007257 1.988295 0.1905 1.5708 -0 0</pose>
+      <static>0</static>
+      <link name='body'>
+        <inertial>
+          <mass>0.05</mass>
+          <inertia>
+            <ixx>0.000669353</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.000133871</iyy>
+            <iyz>0</iyz>
+            <izz>0.000669353</izz>
+          </inertia>
+          <pose>0 0 0 0 -0 0</pose>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://cmsc20600_final_project/models/robot_dumbbell_blue/meshes/robot_dumbbell_blue.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>model://cmsc20600_final_project/models/robot_dumbbell_blue/meshes/robot_dumbbell_blue.dae</uri>
+            </mesh>
+          </geometry>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <model name='robot_dumbbell_blue2'>
       <pose>-4.00231 0.979095 0.190499 1.5708 1e-05 -0.000424</pose>
       <static>0</static>
       <link name='body'>
@@ -430,7 +382,7 @@
         <kinematic>0</kinematic>
       </link>
     </model>
-    <model name='robot_dumbbell_blue_clone_0'>
+    <model name='robot_dumbbell_blue3'>
       <pose>-4.01379 -0.005995 0.190499 1.57081 8e-06 -0.000472</pose>
       <static>0</static>
       <link name='body'>
@@ -478,7 +430,7 @@
         <kinematic>0</kinematic>
       </link>
     </model>
-    <model name='robot_dumbbell_blue_clone_1'>
+    <model name='robot_dumbbell_blue4'>
       <pose>-3.99677 -1.00746 0.190499 1.57079 -6e-06 -0.000504</pose>
       <static>0</static>
       <link name='body'>
@@ -526,7 +478,7 @@
         <kinematic>0</kinematic>
       </link>
     </model>
-    <model name='robot_dumbbell_blue_clone_2'>
+    <model name='robot_dumbbell_blue5'>
       <pose>-4.01809 -1.99284 0.190499 1.57079 -6e-06 -0.000504</pose>
       <static>0</static>
       <link name='body'>
@@ -574,7 +526,55 @@
         <kinematic>0</kinematic>
       </link>
     </model>
-    <model name='robot_dumbbell_red_clone'>
+    <model name='robot_dumbbell_red1'>
+      <pose>3.971324 1.997633 0.1905 1.5708 -0 0</pose>
+      <static>0</static>
+      <link name='body'>
+        <inertial>
+          <mass>0.05</mass>
+          <inertia>
+            <ixx>0.000669353</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.000133871</iyy>
+            <iyz>0</iyz>
+            <izz>0.000669353</izz>
+          </inertia>
+          <pose>0 0 0 0 -0 0</pose>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://cmsc20600_final_project/models/robot_dumbbell_red/meshes/robot_dumbbell_red.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>model://cmsc20600_final_project/models/robot_dumbbell_red/meshes/robot_dumbbell_red.dae</uri>
+            </mesh>
+          </geometry>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <model name='robot_dumbbell_red2'>
       <pose>3.95709 1.04469 0.2005 1.5708 1e-06 -0.000471</pose>
       <static>0</static>
       <link name='body'>
@@ -622,7 +622,7 @@
         <kinematic>0</kinematic>
       </link>
     </model>
-    <model name='robot_dumbbell_red_clone_0'>
+    <model name='robot_dumbbell_red3'>
       <pose>3.97472 0.000961 0.2005 1.5708 1e-06 -0.000471</pose>
       <static>0</static>
       <link name='body'>
@@ -670,7 +670,7 @@
         <kinematic>0</kinematic>
       </link>
     </model>
-    <model name='robot_dumbbell_red_clone_1'>
+    <model name='robot_dumbbell_red4'>
       <pose>3.98412 -0.970009 0.2005 1.5708 1e-06 -0.000471</pose>
       <static>0</static>
       <link name='body'>
@@ -718,7 +718,7 @@
         <kinematic>0</kinematic>
       </link>
     </model>
-    <model name='robot_dumbbell_red_clone_2'>
+    <model name='robot_dumbbell_red5'>
       <pose>3.98143 -2.00383 0.2005 1.5708 1e-06 -0.000471</pose>
       <static>0</static>
       <link name='body'>
