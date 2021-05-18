@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="robot_dumbbell_red">
+    <static>0</static>
+    <link name="link">
+      <inertial>
+          <mass>0.05</mass>
+          <inertia>
+            <ixx>0.0006693535</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.0001338707</iyy>
+            <iyz>0</iyz>
+            <izz>0.0006693535</izz>
+          </inertia>
+        </inertial>
+
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://robot_dumbbell_red/meshes/robot_dumbbell_red.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://robot_dumbbell_red/meshes/robot_dumbbell_red.dae</uri>
+          </mesh>
+        </geometry>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+    </link>
+  </model>
+</sdf>
