@@ -1,2 +1,5 @@
-# cmsc20600_final_project
-CMSC 20600 Robotics Final Project
+# Tic-Tac-Toe
+## Team Members:
+- Tianle Liu
+- David Wu 
+- Oscar Michel
