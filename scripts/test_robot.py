@@ -5,9 +5,13 @@ import numpy as np
 import keras_ocr
 import moveit_commander
 import math
+import actionlib
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Point, PoseWithCovariance
 from sensor_msgs.msg import LaserScan
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from actionlib_msgs.msg import *
+
 
 # HSV color ranges for RGB camera
 # [lower range, upper range]
@@ -19,6 +23,21 @@ HSV_COLOR_RANGES = {
         }
 
 
+# Grid locations numbered 0-8, 'home base' locations for red and blue player
+GRID_LOCATIONS = {
+        "0" : (2, 2),
+        "1" : (2, 0),
+        "2" : (2, -2),
+        "3" : (0, 2),
+        "4" : (0, 0),
+        "5" : (0, -2),
+        "6" : (-2, 2), 
+        "7" : (-2, 0),
+        "8" : (-2, -2),
+        "red" : (3, 0),
+        "blue" : (-3, 0)
+        }
+
 # List of possible states
 STOP = 'stop' # robot not doing anything, either waiting for action or done
 # Go to dumbell color
@@ -26,6 +45,12 @@ DUMBBELL = 'dumbbell'
 # Gripper actions
 PICKUP = 'pickup'
 DROP = 'drop'
+# Map locations
+ZERO = '0'
+ONE = '1'
+TWO = '2'
+THREE = '3'
+
 
 class test_robot(object):
 
@@ -43,7 +68,8 @@ class test_robot(object):
 
         # subscribe to robot's laser scan
         rospy.Subscriber("/scan", LaserScan, self.scan_callback)
-
+        
+        rospy.sleep(1)
         # the interface to the group of joints making up the turtlebot3
         # openmanipulator arm
         self.move_group_arm = moveit_commander.MoveGroupCommander("arm")
@@ -65,7 +91,12 @@ class test_robot(object):
                         Twist, queue_size=1)
 
         self.twist = Twist()
-
+        """ For now manually set initial pose
+        # Set up publisher for initial pose
+        self.init_pose_pub = rospy.Publisher('/initialpose', PoseWithCovariance, queue_size=10)
+        rospy.sleep(1)
+        self.init_pose()
+        """
         # Set gripper to initial starting point
         self.reset_gripper()
 
@@ -73,6 +104,24 @@ class test_robot(object):
 
         # tell dispatch_actions node to start publish actions
         rospy.sleep(1)
+    
+    def init_pose(self):
+        init_pose = PoseWithCovariance()
+        init_pose.pose.position.x = GRID_LOCATIONS["red"][0]
+        init_pose.pose.position.y = GRID_LOCATIONS["red"][1]
+        init_pose.pose.position.z = 0.0
+
+        init_pose.pose.orientation.x = 0.0
+        init_pose.pose.orientation.y = 0.0
+        init_pose.pose.orientation.z = 0
+        init_pose.pose.orientation.w = 1.0
+        covariance = [0.16575166048810708, 0.005812119956448508, 0.0, 0.0, 0.0, 0.0, 
+                0.005812119956448534, 0.163246490374612, 0.0, 0.0, 0.0, 0.0, 
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05704654800158645]
+        init_pose.covariance = covariance
+        self.init_pose_pub.publish(init_pose)
+        rospy.sleep(2)
 
     """Callback for lidar scan"""
     def scan_callback(self, data):
@@ -115,9 +164,9 @@ class test_robot(object):
         self.move_group_gripper.go(gripper_joint_goal, wait=True) 
         self.move_group_arm.stop()
         self.move_group_gripper.stop()
-        self.move_back()
+        #self.move_back()
         self.pub_cmd_vel(0,0)
-        self.state = DROP
+        self.state = THREE
 
 
     """Drop dumbell from gripper"""
@@ -180,6 +229,40 @@ class test_robot(object):
         else:
             # spin until we see image
             self.pub_cmd_vel(0, 0.2)
+    
+    def move_grid(self, xy):
+        # Define a client for to send goal requests to the move_base server through a SimpleActionClient
+        ac = actionlib.SimpleActionClient("move_base", MoveBaseAction)
+
+        # Wait for the action server to come up
+        while(not ac.wait_for_server(rospy.Duration.from_sec(5.0))):
+            rospy.loginfo("Waiting for the move_base action server to come up")
+
+        # Set up goal
+        goal = MoveBaseGoal()
+
+        goal.target_pose.header.frame_id = "map"
+        goal.target_pose.header.stamp = rospy.Time.now()
+        goal.target_pose.pose.position = Point(xy[0], xy[1], 0)
+        goal.target_pose.pose.orientation.x = 0.0
+        goal.target_pose.pose.orientation.y = 0.0
+        goal.target_pose.pose.orientation.z = 0.0
+        goal.target_pose.pose.orientation.w = 1.0
+
+        # Send goal location
+        rospy.loginfo("Sending goal location ...")
+        ac.send_goal(goal)
+
+        # Wait
+        ac.wait_for_result(rospy.Duration(60))
+
+        if (ac.get_state() == GoalStatus.SUCCEEDED):
+            rospy.loginfo("Goal success")
+            self.state = DROP
+            return True
+        else:
+            rospy.loginfo("Goal Fail")
+            return False
 
     """The driver of our node, calls functions dpending on state"""
     def run(self):
@@ -195,6 +278,8 @@ class test_robot(object):
                 elif self.state == DROP:
                     # Drop dumbell
                     self.drop_gripper()
+                elif self.state == THREE:
+                    self.move_grid(GRID_LOCATIONS[THREE])
             r.sleep()
 
 
