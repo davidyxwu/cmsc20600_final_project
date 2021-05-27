@@ -7,7 +7,7 @@ import moveit_commander
 import math
 import actionlib
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import Twist, Point, PoseWithCovariance
+from geometry_msgs.msg import Twist, Point, PoseWithCovariance, PoseWithCovarianceStamped
 from sensor_msgs.msg import LaserScan
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from actionlib_msgs.msg import *
@@ -91,12 +91,12 @@ class test_robot(object):
                         Twist, queue_size=1)
 
         self.twist = Twist()
-        """ For now manually set initial pose
+        
         # Set up publisher for initial pose
-        self.init_pose_pub = rospy.Publisher('/initialpose', PoseWithCovariance, queue_size=10)
+        self.init_pose_pub = rospy.Publisher('/initialpose', PoseWithCovarianceStamped, queue_size=10)
         rospy.sleep(1)
         self.init_pose()
-        """
+        
         # Set gripper to initial starting point
         self.reset_gripper()
 
@@ -120,7 +120,10 @@ class test_robot(object):
                 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
                 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05704654800158645]
         init_pose.covariance = covariance
-        self.init_pose_pub.publish(init_pose)
+        init_pose_stamped = PoseWithCovarianceStamped()
+        init_pose_stamped.pose = init_pose
+        init_pose_stamped.header.frame_id = "map"
+        self.init_pose_pub.publish(init_pose_stamped)
         rospy.sleep(2)
 
     """Callback for lidar scan"""
