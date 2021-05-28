@@ -8,17 +8,17 @@ PLAYER_O = 1
 PLAYER_X = 2
 PLAYER_SYMBOL = {PLAYER_O : 'O', PLAYER_X : 'X'}
 
-WIN_REWARD = 100 # with respect to player O 
-TIE_REWARD = 50
-LOSS_REWARD = 0 
-OTHER_REWARD = 0 
+WIN_REWARD = 1.0 # with respect to player O
+TIE_REWARD = 0.0
+LOSS_REWARD = -1.0
+OTHER_REWARD = 0.0
 
 class Game(object):
     def __init__(self):
         self.board = [0] * 9 # 3X3 board in row-major order 
         self.player = PLAYER_O # current player 
         self.open_grid = 9 # count number of open grids
-    
+
     def __str__(self):
         print("Current player: " + PLAYER_SYMBOL[self.player])
         print("Current board: ")
@@ -72,6 +72,9 @@ class Game(object):
         if self.board[grid] == 0:
             return True
         return False
+
+    def get_valid_moves(self):
+        return [i for i in range(len(self.board)) if self.valid_move(i)]
      
     # make move   
     def move(self, grid):
