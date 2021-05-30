@@ -1,0 +1,2 @@
+string player
+int position
