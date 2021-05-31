@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-
+import numpy as np
 # Tic-tac-toe game policy and Q matrix implementation
 
 from random import randint
 
+NO_PLAYER = 0
 PLAYER_O = 1
 PLAYER_X = 2
-PLAYER_SYMBOL = {PLAYER_O : 'O', PLAYER_X : 'X'}
+PLAYER_SYMBOL = {PLAYER_O : 'O', PLAYER_X : 'X', 0: '_'}
 
-WIN_REWARD = 1.0 # with respect to player O
-TIE_REWARD = 0.0
-LOSS_REWARD = -1.0
+WIN_REWARD = 100.0 # with respect to player O
+TIE_REWARD = 50.0
+LOSS_REWARD = 0.0
 OTHER_REWARD = 0.0
 
 # clockwise rotation of the board grids
@@ -37,6 +38,7 @@ class Game(object):
         self.hash_board = self.board # board for hashing, optimized for first 2 steps  
         self.player = PLAYER_O # current player 
         self.open_grid = 9 # count number of open grids
+        self.last_move = -1
 
         # operations (rotation/flip) for optimization
         self.operations = []
@@ -44,11 +46,14 @@ class Game(object):
     def __str__(self):
         print("Current player: " + PLAYER_SYMBOL[self.player])
         print("Current board: ")
+        str = ''
         for row in range(3):
+            line = ''
             for column in range(3):
-                print(PLAYER_SYMBOL[self.board[row*3 + column]] + ", ", end="")
-            print()
-        return 
+                line += PLAYER_SYMBOL[self.board[row*3 + column]] + " "
+            line += '\n'
+            str += line
+        return str
 
     # check whether the current player has won
     def has_won(self, grid): 
@@ -57,25 +62,31 @@ class Game(object):
         # check column
         sum = 0 
         for i in range(3):
-            self.board[(grid + 3*i)%9]
+            pos = (grid + 3*i)%9
+            if self.player == self.board[pos]:
+                sum += self.board[pos]
         if sum == win_val:
             return True
 
         # check row
         sum = 0 
-        row = int(grid/3)
+        row = grid // 3
         for i in range(3):
-            sum += self.board[row*3+i]
+            pos = row*3+i
+            if self.player == self.board[pos]:
+                sum += self.board[row*3+i]
         if sum == win_val:
             return True
 
         # check diagonals
         sum1 = 0
         for i in [0,4,8]:
-            sum1 += self.board[i]
+            if self.player == self.board[i]:
+                sum1 += self.board[i]
         sum2 = 0
         for i in [2,4,6]:
-            sum2 += self.board[i]
+            if self.player == self.board[i]:
+                sum2 += self.board[i]
         if sum1 == win_val or sum2 == win_val:
             return True
 
@@ -83,7 +94,9 @@ class Game(object):
         return False 
 
     # check whether the game ends after current move 
-    def game_end(self, grid):
+    def game_end(self, grid=-1): #by defualt use last move
+        if grid==-1:
+            grid = self.last_move
         if self.has_won(grid) or self.open_grid == 0:
             return True
         return False
@@ -101,6 +114,8 @@ class Game(object):
     # make move   
     def move(self, grid):
 
+        assert self.board[grid] == 0
+
         # if this is the first move
         if self.open_grid == 9:
             self.operations.append(self.move1_state_optimization(grid))
@@ -109,18 +124,21 @@ class Game(object):
             self.operations.append(self.move2_state_optimization(grid))
 
         # update board 
-        self.board[grid] == self.player
+        self.board[grid] = self.player
         # update hash_board
         self.hash_board[self.transform_grid[grid]] = self.player
         # update open grid count
-        self.open_grid += -1 
+        self.open_grid -= 1
         # update last_move
         self.last_move = grid 
+
         # set next player
         if self.player == PLAYER_O:
             self.player = PLAYER_X
         else:
             self.player = PLAYER_O
+
+        self.last_move = grid
         return 
 
     # return reward for each move 
