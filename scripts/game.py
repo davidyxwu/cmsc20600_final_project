@@ -13,11 +13,33 @@ TIE_REWARD = 0.0
 LOSS_REWARD = -1.0
 OTHER_REWARD = 0.0
 
+# clockwise rotation of the board grids
+rotation = {
+    0:2, 2:8, 8:6, 6:0,
+    1:5, 5:7, 7:3, 3:1, 
+    4:4}
+
+# diagonal flip
+flip_diag = {
+    0:0, 4:4, 8:8, 
+    3:1, 6:2, 7:5, 1:3, 2:6, 5:7}
+
+# vertical flip
+flip_ver = {
+    1:1, 4:4, 7:7,
+    2:0, 5:3, 8:6, 0:2, 3:5, 6:8}
+
+
 class Game(object):
     def __init__(self):
         self.board = [0] * 9 # 3X3 board in row-major order 
+        self.last_move = -1 # track last move
+        self.hash_board = self.board # board for hashing, optimized for first 2 steps  
         self.player = PLAYER_O # current player 
         self.open_grid = 9 # count number of open grids
+
+        # operations (rotation/flip) for optimization
+        self.operations = []
 
     def __str__(self):
         print("Current player: " + PLAYER_SYMBOL[self.player])
@@ -78,10 +100,22 @@ class Game(object):
      
     # make move   
     def move(self, grid):
+
+        # if this is the first move
+        if self.open_grid == 9:
+            self.operations.append(self.move1_state_optimization(grid))
+        # if this is the 2nd move
+        if self.open_grid == 8:
+            self.operations.append(self.move2_state_optimization(grid))
+
         # update board 
         self.board[grid] == self.player
+        # update hash_board
+        self.hash_board[self.transform_grid[grid]] = self.player
         # update open grid count
         self.open_grid += -1 
+        # update last_move
+        self.last_move = grid 
         # set next player
         if self.player == PLAYER_O:
             self.player = PLAYER_X
@@ -102,6 +136,48 @@ class Game(object):
             return TIE_REWARD
         else:
             return OTHER_REWARD    
+
+    # consider the boards to be the same w.r.t rotations, return number of rotations needed
+    def move1_state_optimization(self, grid):
+        rotation_cnt = {
+            0:0, 1:0, 4:0,
+            6:1, 3:1, 8:2, 7:2, 2:3, 5:3}
+        return (rotation, rotation_cnt[grid])
+
+    # consider the boards to be the same w.r.t certain rotations/flips, 
+    def move2_state_optimization(self, grid):
+        last_move_transformed = self.transform_grid(self.last_move)
+       
+        if last_move_transformed == 0:
+            flip_cnt = {
+                0:0, 1:0, 2:0, 4:0, 5:0, 8:0,
+                3:1, 6:1, 7:1}
+            return (flip_diag, flip_cnt[grid])
+
+        elif last_move_transformed == 1:
+            flip_cnt = {
+                0:0, 3:0, 6:0, 1:0, 4:0, 7:0,
+                2:1, 5:1, 8:1}
+            return (flip_ver, flip_cnt[grid]) 
+        # last_move_transformed == 4
+        else:
+            rotation_cnt = {
+            0:0, 1:0, 4:0,
+            6:1, 3:1, 8:2, 7:2, 2:3, 5:3}
+            return (rotation, rotation_cnt[grid])
+
+    # return grid number after transformations
+    def transform_grid(self, grid):
+        for op, cnt in self.operations:
+            for i in cnt:
+                grid = op[grid]
+        return grid 
+            
+
+
+
+
+
 
             
 
