@@ -3,11 +3,18 @@ This launch file spawns two robots
 -->
 <launch>
 
-    <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [waffle, waffle_pi]"/>
+    <arg name="model" default="waffle"/>
     <arg name="blue_x_pos" default="-3.0"/>
     <arg name="blue_y_pos" default="0.0"/>
     <arg name="blue_z_pos" default="0.0"/>
     <arg name="blue_posYaw" default="3.14157"/>
+
+    <arg name="blue_j1" default="0.0"/>
+    <arg name="blue_j2" default="0.0"/>
+    <arg name="blue_j3" default="0.0"/>
+    <arg name="blue_j4" default="0.0"/>
+    <arg name="blue_g1" default="0.0"/>
+    <arg name="blue_g2" default="0.0"/>
 
     <arg name="camera_1_x_pos" default="0.0"/>
     <arg name="camera_1_y_pos" default="-2.0"/>
@@ -21,20 +28,36 @@ This launch file spawns two robots
     <arg name="red_z_pos" default="0,0"/>
     <arg name="red_posYaw" default="0.0"/>
 
+    <arg name="red_j1" default="0.0"/>
+    <arg name="red_j2" default="0.0"/>
+    <arg name="red_j3" default="0.0"/>
+    <arg name="red_j4" default="0.0"/>
+    <arg name="red_g1" default="0.0"/>
+    <arg name="red_g2" default="0.0"/>
+
     <arg name="first_tb3"  default="blue"/>
     <arg name="second_tb3" default="red"/>
 
   <!-- First Robot -->
 
   <group ns = "$(arg first_tb3)">
-     <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+     <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_manipulation_description)/urdf/turtlebot3_manipulation_robot.urdf.xacro" />
 
     <include file="$(find cmsc20600_final_project)/launch/turtlebot3_remote.launch">
       <arg name="model" value="$(arg model)"/>
       <arg name="tf_prefix" value="$(arg first_tb3)" />
     </include>
 
-    <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model $(arg first_tb3)_$(arg model) -x $(arg blue_x_pos) -y $(arg blue_y_pos) -z $(arg blue_z_pos) -Y $(arg blue_posYaw) -param robot_description" />
+    <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model $(arg first_tb3)_$(arg model) -x $(arg blue_x_pos)
+       -y $(arg blue_y_pos) -z $(arg blue_z_pos) -Y $(arg blue_posYaw) -J joint1 0.0 -J joint2 0.0 -J joint3 0.0 -J joint4 0.0 -J gripper 0.0 -J gripper_sub 0.0 -param robot_description" />
+
+    <!-- controller utils -->
+    <include file="$(find turtlebot3_manipulation_gazebo)/launch/controller_utils.launch">
+    </include>
+
+    <!-- run controllers -->
+    <include file="$(find turtlebot3_manipulation_gazebo)/launch/turtlebot3_manipulation_controller.launch">
+    </include>
 
     <node pkg="tf" type="static_transform_publisher" name="bf2base_link"
       args="0.0 0.0 0.01 0.0 0.0 0.0 1.0 $(arg first_tb3)/base_footprint $(arg first_tb3)/base_link 100" />
@@ -56,14 +79,23 @@ This launch file spawns two robots
   <!-- Second Robot -->
 
   <group ns = "$(arg second_tb3)">
-     <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+     <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_manipulation_description)/urdf/turtlebot3_manipulation_robot.urdf.xacro" />
 
     <include file="$(find cmsc20600_final_project)/launch/turtlebot3_remote.launch">
       <arg name="model" value="$(arg model)"/>
       <arg name="tf_prefix" value="$(arg second_tb3)" />
     </include>
 
-    <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model $(arg second_tb3)_$(arg model) -x $(arg red_x_pos) -y $(arg red_y_pos) -z $(arg red_z_pos) -Y $(arg red_posYaw) -param robot_description" />
+    <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model $(arg second_tb3)_$(arg model) -x $(arg red_x_pos)
+    -y $(arg red_y_pos) -z $(arg red_z_pos) -Y $(arg red_posYaw) -J joint1 0.0 -J joint2 0.0 -J joint3 0.0 -J joint4 0.0 -J gripper 0.0 -J gripper_sub 0.0 -param robot_description" />
+
+     <!-- controller utils -->
+    <include file="$(find turtlebot3_manipulation_gazebo)/launch/controller_utils.launch">
+    </include>
+
+    <!-- run controllers -->
+    <include file="$(find turtlebot3_manipulation_gazebo)/launch/turtlebot3_manipulation_controller.launch">
+    </include>
 
     <node pkg="tf" type="static_transform_publisher" name="bf2base_link"
       args="0.0 0.0 0.01 0.0 0.0 0.0 1.0 $(arg second_tb3)/base_footprint $(arg second_tb3)/base_link 100" />
@@ -80,12 +112,6 @@ This launch file spawns two robots
     <node pkg="tf" type="static_transform_publisher" name="rgb_frame2rgb_optical_frame"
       args="0.0 0.0 0.0 -0.49999984146591747 0.49960183664463353 -0.49999984146591747 0.5003981633553666 $(arg second_tb3)/camera_rgb_frame $(arg second_tb3)/camera_rgb_optical_frame 100" />
 
-  </group>
-
-  <group ns = "camera_1">
-    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find cmsc20600_final_project)/definition/sim/urdf/camera.urdf.xacro" />
-    <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"
-    args="-urdf -model single_camera -x $(arg camera_1_x_pos) -y $(arg camera_1_y_pos) -z $(arg camera_1_z_pos) -R $(arg camera_1_posRoll) -P $(arg camera_1_posPitch) -Y $(arg camera_1_posYaw) -param robot_description" />
   </group>
 
 </launch>

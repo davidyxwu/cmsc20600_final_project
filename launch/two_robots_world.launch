@@ -3,17 +3,30 @@ This launch file launches the world for two turtlebots
 -->
 <launch>
   <arg name="world_name" default="$(find cmsc20600_final_project)/worlds/tictactoe_dumbbells.world"/>
-  <!--<arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>-->
-  <arg name="model" default="waffle" />
+  <arg name="model" default="waffle"/>
   <arg name="blue_x_pos" default="-3.0"/>
   <arg name="blue_y_pos" default="0.0"/>
   <arg name="blue_z_pos" default="0.0"/>
   <arg name="blue_posYaw" default="3.1415"/>
 
+  <arg name="blue_j1" default="0.0"/>
+  <arg name="blue_j2" default="0.0"/>
+  <arg name="blue_j3" default="0.0"/>
+  <arg name="blue_j4" default="0.0"/>
+  <arg name="blue_g1" default="0.0"/>
+  <arg name="blue_g2" default="0.0"/>
+
   <arg name="red_x_pos" default="3.0"/>
   <arg name="red_y_pos" default="0.0"/>
   <arg name="red_z_pos" default="0.0"/>
   <arg name="red_posYaw" default="0.0"/>
+
+  <arg name="red_j1" default="0.0"/>
+  <arg name="red_j2" default="0.0"/>
+  <arg name="red_j3" default="0.0"/>
+  <arg name="red_j4" default="0.0"/>
+  <arg name="red_g1" default="0.0"/>
+  <arg name="red_g2" default="0.0"/>
 
   <arg name="first_tb3"  default="blue"/>
   <arg name="second_tb3" default="red"/>
@@ -35,10 +48,24 @@ This launch file launches the world for two turtlebots
     <arg name="blue_z_pos" default="$(arg blue_z_pos)"/>
     <arg name="blue_posYaw" default="$(arg blue_posYaw)"/>
 
+    <arg name="blue_j1" default="$(arg blue_j1)"/>
+    <arg name="blue_j2" default="$(arg blue_j2)"/>
+    <arg name="blue_j3" default="$(arg blue_j3)"/>
+    <arg name="blue_j4" default="$(arg blue_j4)"/>
+    <arg name="blue_g1" default="$(arg blue_g1)"/>
+    <arg name="blue_g2" default="$(arg blue_g2)"/>
+
     <arg name="red_x_pos" default="$(arg red_x_pos)"/>
     <arg name="red_y_pos" default="$(arg red_y_pos)"/>
     <arg name="red_z_pos" default="$(arg red_z_pos)"/>
     <arg name="red_posYaw" default="$(arg red_posYaw)"/>
+
+    <arg name="red_j1" default="$(arg red_j1)"/>
+    <arg name="red_j2" default="$(arg red_j2)"/>
+    <arg name="red_j3" default="$(arg red_j3)"/>
+    <arg name="red_j4" default="$(arg red_j4)"/>
+    <arg name="red_g1" default="$(arg red_g1)"/>
+    <arg name="red_g2" default="$(arg red_g2)"/>
 
     <arg name="first_tb3"  default="$(arg first_tb3)"/>
     <arg name="second_tb3" default="$(arg second_tb3)"/>
