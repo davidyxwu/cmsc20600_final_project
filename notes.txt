@@ -2,6 +2,9 @@ Navigation Source:
 https://twitter.com/fernan_glez98/status/1320377300530200581
 https://github.com/fgonzalezr1998/RobotechVirtualChallenge
 
+Move_it for multiple robots:
+https://github.com/ros-planning/moveit_tutorials/issues/465
+
 ROSTopic List:
 /blue/amcl/parameter_descriptions
 /blue/amcl/parameter_updates
