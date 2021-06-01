@@ -1,3 +1,6 @@
+<!--
+This launch file operates navigation for one turtlebot
+-->
 <launch>
   <!-- Arguments -->
   <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [waffle, waffle_pi]"/>
@@ -24,7 +27,7 @@
   </include>
 
   <!-- rviz -->
-  <group if="$(arg open_rviz)"> 
+  <group if="$(arg open_rviz)">
     <node pkg="rviz" type="rviz" name="rviz" required="true"
           args="-d $(find cmsc20600_final_project)/rviz/turtlebot3_navigation.rviz"/>
   </group>

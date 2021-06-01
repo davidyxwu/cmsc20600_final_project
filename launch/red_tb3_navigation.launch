@@ -1,0 +1,23 @@
+<!--
+This launch file launches navigation for the red turtlebot player
+-->
+<launch>
+  <param name="/use_sim_time" value="true"/>
+  <arg name="tf_prefix" default="red"/>
+
+  <!-- Run the map server -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find cmsc20600_final_project)/map/map.yaml" respawn="false">
+    <param name="frame_id" value="map" />
+  </node>
+
+  <group ns="$(arg tf_prefix)">
+    <param name="tf_prefix" value="$(arg tf_prefix)" />
+    <include file="$(find cmsc20600_final_project)/launch/two_robots_navigation.launch">
+      <arg name="tf_prefix" value="$(arg tf_prefix)"/>
+      <arg name="initial_pose_x" value="2.21" />
+      <arg name="initial_pose_y" value="6.86" />
+      <arg name="initial_pose_a" value="-1.57" />
+    </include>
+  </group>
+
+</launch>
