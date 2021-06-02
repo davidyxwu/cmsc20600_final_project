@@ -59,6 +59,9 @@ This launch file spawns two robots
     <include file="$(find turtlebot3_manipulation_gazebo)/launch/turtlebot3_manipulation_controller.launch">
     </include>
 
+        <!---Move it-->
+    <include file="$(find turtlebot3_manipulation_moveit_config)/launch/move_group.launch" />
+
     <node pkg="tf" type="static_transform_publisher" name="bf2base_link"
       args="0.0 0.0 0.01 0.0 0.0 0.0 1.0 $(arg first_tb3)/base_footprint $(arg first_tb3)/base_link 100" />
 
@@ -96,6 +99,9 @@ This launch file spawns two robots
     <!-- run controllers -->
     <include file="$(find turtlebot3_manipulation_gazebo)/launch/turtlebot3_manipulation_controller.launch">
     </include>
+
+    <!---Move it-->
+    <include file="$(find turtlebot3_manipulation_moveit_config)/launch/move_group.launch" />
 
     <node pkg="tf" type="static_transform_publisher" name="bf2base_link"
       args="0.0 0.0 0.01 0.0 0.0 0.0 1.0 $(arg second_tb3)/base_footprint $(arg second_tb3)/base_link 100" />

@@ -2,12 +2,17 @@
 
 import rospy, cv2,  cv_bridge
 import numpy as np
-import keras_ocr
 import moveit_commander
 import math
+import actionlib
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Point, PoseWithCovariance, PoseWithCovarianceStamped, Quaternion
 from sensor_msgs.msg import LaserScan
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from actionlib_msgs.msg import *
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
+
+
 
 # HSV color ranges for RGB camera
 # [lower range, upper range]
@@ -19,6 +24,21 @@ HSV_COLOR_RANGES = {
         }
 
 
+# Grid locations numbered 0-8, 'home base' locations for red and blue player
+GRID_LOCATIONS = {
+        "0" : (2, 2),
+        "1" : (2, 0),
+        "2" : (2, -2),
+        "3" : (0, 2),
+        "4" : (0, 0),
+        "5" : (0, -2),
+        "6" : (-2, 2),
+        "7" : (-2, 0),
+        "8" : (-2, -2),
+        "red" : (3, 0),
+        "blue" : (-3, 0)
+        }
+
 # List of possible states
 STOP = 'stop' # robot not doing anything, either waiting for action or done
 # Go to dumbell color
@@ -26,44 +46,64 @@ DUMBBELL = 'dumbbell'
 # Gripper actions
 PICKUP = 'pickup'
 DROP = 'drop'
+# Map locations
+ZERO = '0'
+ONE = '1'
+TWO = '2'
+THREE = '3'
+FOUR = '4'
+FIVE = '5'
+SIX = '6'
+SEVEN = '7'
+EIGHT = '8'
+RED = 'red'
+BLUE = 'blue'
 
-class Robot2(object):
 
-     def __init__(self):
+class red(object):
+
+    def __init__(self):
         self.initialized = False
         # init rospy node
-        rospy.init_node("robot2")
+        rospy.init_node("red")
 
         # set up ROS and CV bridge
         self.bridge = cv_bridge.CvBridge()
 
         # subscribe to the robot's RGB camera data stream
-        self.image_sub = rospy.Subscriber('robot2/camera/rgb/image_raw',
+        self.image_sub = rospy.Subscriber('/red/camera/rgb/image_raw',
                         Image, self.image_callback)
 
         # subscribe to robot's laser scan
-        rospy.Subscriber("robot2/scan", LaserScan, self.scan_callback)
+        rospy.Subscriber("/red/scan", LaserScan, self.scan_callback)
 
+        rospy.sleep(1)
         # the interface to the group of joints making up the turtlebot3
         # openmanipulator arm
-        self.move_group_arm = moveit_commander.MoveGroupCommander("arm")
+        self.move_group_arm = moveit_commander.MoveGroupCommander("arm", robot_description="red/robot_description", ns="/red")
 
         # the interface to the group of joints making up the turtlebot3
         # openmanipulator gripper
-        self.move_group_gripper = moveit_commander.MoveGroupCommander("gripper")
+        self.move_group_gripper = moveit_commander.MoveGroupCommander("gripper", robot_description="red/robot_description", ns="/red")
 
         # Set image, hsv, scan data to be NONE for now
         self.image = None
         self.hsv = None
         self.laserscan = None
         self.laserscan_front = None
-        self.color = "blue"
+        self.color = "red"
+        self.state = STOP
 
         # Set up publisher for movement
-        self.cmd_vel_pub = rospy.Publisher('robot2/cmd_vel',
+        self.cmd_vel_pub = rospy.Publisher('/red/cmd_vel',
                         Twist, queue_size=1)
 
         self.twist = Twist()
+
+        # Set up publisher for initial pose
+        self.init_pose_pub = rospy.Publisher('/red/initialpose', PoseWithCovarianceStamped, queue_size=10)
+        rospy.sleep(1)
+        self.init_pose()
 
         # Set gripper to initial starting point
         self.reset_gripper()
@@ -72,6 +112,27 @@ class Robot2(object):
 
         # tell dispatch_actions node to start publish actions
         rospy.sleep(1)
+
+    def init_pose(self):
+        init_pose = PoseWithCovariance()
+        init_pose.pose.position.x = GRID_LOCATIONS[self.color][0]
+        init_pose.pose.position.y = GRID_LOCATIONS[self.color][1]
+        init_pose.pose.position.z = 0.0
+        q = quaternion_from_euler(0, 0, 0)
+        init_pose.pose.orientation.x = q[0]
+        init_pose.pose.orientation.y = q[1]
+        init_pose.pose.orientation.z = q[2]
+        init_pose.pose.orientation.w = q[3]
+        covariance = [0.16575166048810708, 0.005812119956448508, 0.0, 0.0, 0.0, 0.0,
+                0.005812119956448534, 0.163246490374612, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05704654800158645]
+        init_pose.covariance = covariance
+        init_pose_stamped = PoseWithCovarianceStamped()
+        init_pose_stamped.pose = init_pose
+        init_pose_stamped.header.frame_id = "map"
+        self.init_pose_pub.publish(init_pose_stamped)
+        rospy.sleep(2)
 
     """Callback for lidar scan"""
     def scan_callback(self, data):
@@ -97,47 +158,56 @@ class Robot2(object):
         self.twist.angular.z = ang
         self.cmd_vel_pub.publish(self.twist)
 
-        """Starting gripper setup to pickup"""
+    """Starting gripper setup to pickup"""
     def reset_gripper(self):
         arm_joint_goal = [0.0, 0.7, -0.260, -0.450]
-        gripper_joint_goal = [0.01, 0.01]
+        gripper_joint_goal = [0.009, 0.009]
         self.move_group_arm.go(arm_joint_goal, wait=True)
         self.move_group_arm.stop()
         self.move_group_gripper.go(gripper_joint_goal, wait=True)
         self.move_group_gripper.stop()
-    
+        self.move_group_arm.clear_pose_targets()
+        self.move_group_gripper.clear_pose_targets()
+
     """Gripper with dumbell"""
     def pick_up_gripper(self):
         arm_joint_goal = [0.0, 0.10, -0.5, -0.2]
         gripper_joint_goal = [0.004, 0.004]
         self.move_group_arm.go(arm_joint_goal, wait=True)
-        self.move_group_gripper.go(gripper_joint_goal, wait=True) 
+        self.move_group_gripper.go(gripper_joint_goal, wait=True)
         self.move_group_arm.stop()
         self.move_group_gripper.stop()
-        # Move back away from dumbells
-        init_time = rospy.Time.now().to_sec()
-        while not rospy.is_shutdown() and rospy.Time.now().to_sec() - init_time < 1.0:
-            self.pub_cmd_vel(-0.2, 0)
+        self.move_group_arm.clear_pose_targets()
+        self.move_group_gripper.clear_pose_targets()
+        self.move_back()
         self.pub_cmd_vel(0,0)
-        
+        self.state = FIVE
+
 
     """Drop dumbell from gripper"""
     def drop_gripper(self):
         arm_joint_goal = [0.0, 0.43, 0.48, -0.92]
-        gripper_joint_goal = [0.01, 0.01]
+        gripper_joint_goal = [0.009, 0.009]
         self.move_group_arm.go(arm_joint_goal, wait=True)
         self.move_group_arm.stop()
         self.move_group_gripper.go(gripper_joint_goal, wait=True)
         self.move_group_gripper.stop()
-        
-        init_time = rospy.Time.now().to_sec()
-        # move back away from dumbbell
-        while not rospy.is_shutdown() and rospy.Time.now().to_sec() - init_time < 3.0:
-            self.pub_cmd_vel(-0.2, 0)
+        self.move_group_arm.clear_pose_targets()
+        self.move_group_gripper.clear_pose_targets()
+        self.move_back()
         self.pub_cmd_vel(0,0)
-        self.reset_gripper() 
+        self.reset_gripper()
+        self.state = STOP
 
-        """Move to dumbell of particular color, states = GREEN, BLUE, RED"""
+    def move_back(self):
+        # move back away from dumbbell
+        init_time = rospy.Time.now().to_sec()
+        while not rospy.is_shutdown() and rospy.Time.now().to_sec() - init_time < 1.0:
+            self.pub_cmd_vel(-0.2, 0)
+        self.pub_cmd_vel(0, 0)
+
+
+    """Move to dumbell of particular color, states = GREEN, BLUE, RED, FIX if we see green then don't go"""
     def move_to_dumbell(self):
         if not self.initialized or self.hsv is None or self.image is None or self.laserscan is None:
             return
@@ -177,3 +247,63 @@ class Robot2(object):
             # spin until we see image
             self.pub_cmd_vel(0, 0.2)
 
+    def move_grid(self, xy):
+        # Define a client for to send goal requests to the move_base server through a SimpleActionClient
+        ac = actionlib.SimpleActionClient("/red/move_base", MoveBaseAction)
+
+        # Wait for the action server to come up
+        while(not ac.wait_for_server(rospy.Duration.from_sec(5.0))):
+            rospy.loginfo("Waiting for the move_base action server to come up")
+
+        # Set up goal
+        goal = MoveBaseGoal()
+
+        goal.target_pose.header.frame_id = "map"
+        goal.target_pose.header.stamp = rospy.Time.now()
+        goal.target_pose.pose.position = Point(xy[0], xy[1], 0)
+        goal.target_pose.pose.orientation.x = 0.0
+        goal.target_pose.pose.orientation.y = 0.0
+        goal.target_pose.pose.orientation.z = 0.0
+        goal.target_pose.pose.orientation.w = 1.0
+
+        # Send goal location
+        rospy.loginfo("Sending goal location ...")
+        ac.send_goal(goal)
+
+        # Wait
+        ac.wait_for_result(rospy.Duration(60))
+
+        if (ac.get_state() == GoalStatus.SUCCEEDED):
+            rospy.loginfo("Goal success")
+            self.state = DROP
+            return True
+        else:
+            rospy.loginfo("Goal Fail")
+            return False
+
+    """The driver of our node, calls functions dpending on state"""
+    def run(self):
+        r = rospy.Rate(5)
+        while not rospy.is_shutdown():
+            if self.initialized:
+                if self.state == DUMBBELL:
+                    # Go to dumbell color
+                    self.move_to_dumbell()
+                elif self.state == PICKUP:
+                    # Pick up dumbell
+                    self.pick_up_gripper()
+                elif self.state == DROP:
+                    # Drop dumbell
+                    self.drop_gripper()
+                elif self.state == THREE:
+                    self.move_grid(GRID_LOCATIONS[THREE])
+                elif self.state == FIVE:
+                    self.move_grid(GRID_LOCATIONS[FIVE])
+            r.sleep()
+
+
+
+if __name__ == '__main__':
+    # Declare a node and run it.
+    node = red()
+    node.run()

@@ -37,7 +37,7 @@ This launch file launches the world for two turtlebots
     <arg name="world_name" value="$(arg world_name)"/>
     <arg name="gui" value="true"/>
     <arg name="headless" value="false"/>
-    <arg name="paused" value="false"/>
+    <arg name="paused" value="true"/>
   </include>
 
   <include file="$(find cmsc20600_final_project)/launch/spawn_two_robots.launch">

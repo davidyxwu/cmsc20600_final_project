@@ -1,0 +1,7 @@
+<launch>
+    <!-- run blue action node -->
+  <node name="blue_action" pkg="cmsc20600_final_project" type="blue.py" output="screen"/>
+
+  <!-- run red action node -->
+  <node name="red_action" pkg="cmsc20600_final_project" type="red.py" output="screen"/>
+</launch>
