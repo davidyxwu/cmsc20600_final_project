@@ -447,7 +447,7 @@
       <pose>0.988122 -0.001184 0 0 -0 0</pose>
     </model>
      <model name='robot_dumbbell_blue1'>
-      <pose>-4.0 1.0 0.1905 1.5708 0.0 0.0</pose>
+      <pose>-4.0 -2.0 0.1905 1.5708 0.0 0.0</pose>
       <static>0</static>
       <link name='body'>
         <inertial>
@@ -495,7 +495,7 @@
       </link>
     </model>
     <model name='robot_dumbbell_blue2'>
-      <pose>-4 0.5 0.1905 1.5708 0.0 0.0</pose>
+      <pose>-4 -1.0 0.1905 1.5708 0.0 0.0</pose>
       <static>0</static>
       <link name='body'>
         <inertial>
@@ -591,7 +591,7 @@
       </link>
     </model>
     <model name='robot_dumbbell_blue4'>
-      <pose>-4 -0.5 0.190499 1.57079 0.0 0.0</pose>
+      <pose>-4 1.0 0.190499 1.57079 0.0 0.0</pose>
       <static>0</static>
       <link name='body'>
         <inertial>
@@ -639,7 +639,7 @@
       </link>
     </model>
     <model name='robot_dumbbell_blue5'>
-      <pose>-4 -1.0 0.190499 1.57079 0.0 0.0</pose>
+      <pose>-4 2.0 0.190499 1.57079 0.0 0.0</pose>
       <static>0</static>
       <link name='body'>
         <inertial>
@@ -687,7 +687,7 @@
       </link>
     </model>
     <model name='robot_dumbbell_red1'>
-      <pose>4.0 1.0 0.1905 1.5708 0 0</pose>
+      <pose>4.0 -2.0 0.1905 1.5708 0 0</pose>
       <static>0</static>
       <link name='body'>
         <inertial>
@@ -735,7 +735,7 @@
       </link>
     </model>
     <model name='robot_dumbbell_red2'>
-      <pose>4 0.5 0.2005 1.5708 0 0</pose>
+      <pose>4 -1.0 0.2005 1.5708 0 0</pose>
       <static>0</static>
       <link name='body'>
         <inertial>
@@ -831,7 +831,7 @@
       </link>
     </model>
     <model name='robot_dumbbell_red4'>
-      <pose>4 -0.5 0.2005 1.5708 0.0 0.0</pose>
+      <pose>4 1.0 0.2005 1.5708 0.0 0.0</pose>
       <static>0</static>
       <link name='body'>
         <inertial>
@@ -879,7 +879,7 @@
       </link>
     </model>
     <model name='robot_dumbbell_red5'>
-      <pose>4 -1.0 0.2005 1.5708 0.0 0.0</pose>
+      <pose>4 2.0 0.2005 1.5708 0.0 0.0</pose>
       <static>0</static>
       <link name='body'>
         <inertial>
