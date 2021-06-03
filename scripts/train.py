@@ -3,14 +3,14 @@
 import random, time, sys
 import numpy as np
 from q_table import Qtable, Value
-from game import Game, PLAYER_O,PLAYER_X
+from game import Game, PLAYER_RED,PLAYER_BLUE
 NO_ACTION = 9
-PLAYER_MAX = PLAYER_O
-PLAYER_MIN = PLAYER_X
+PLAYER_MAX = PLAYER_RED
+PLAYER_MIN = PLAYER_BLUE
 class Train(object):
 
     def __init__(self):
-        self.alpha = 0.5
+        self.alpha = 1 # 0.5
         self.gamma = 0.8
         self.batch_size = 1e4
         self.game = Game()
@@ -24,7 +24,8 @@ class Train(object):
         self.qtable_size = 0
         self.qtable_size_increment = 0
         self.convergence_cnt = 0 
-        self.convergence_criteria = 1000
+        self.convergence_criteria = 10000
+        self.end_train = False
 
         self.Q = Qtable()
 
@@ -96,29 +97,40 @@ class Train(object):
         self.training_step = 0
         while self.training_step < self.batch_size:
             prev_state = self.Q.hash_key(self.game.hash_board)
-            # execute action
             a, o = self.get_next_action()
             next_state = self.Q.hash_key(self.game.hash_board)
             r = self.game.reward(a) if o == NO_ACTION else self.game.reward(o)
-            # calculate Q value
-            old_q_val = self.Q.get_q_value(prev_state, a, o)
-            q_val = (1 - self.alpha) * old_q_val + self.alpha * (r + self.gamma * self.value(next_state))
-            self.Q.q_table[prev_state, a, o] =  q_val
+
+            q = self.Q.get_q_value(prev_state, a, o)
+            q_new = int((1 - self.alpha) * q + self.alpha * (r + self.gamma * self.value(next_state)))
+            key = (prev_state, a) if o == NO_ACTION else (prev_state, o)
+            self.Q.q_table[key] =  q_new
             self.V.value[prev_state] = self.value(prev_state)
+            #if q_new != 0 and q != 0 and q_new != q: 
+               #print("old_q: "+str(q)+", new: "+str(q_new))
+            
             self.training_step += 1
 
             # check if the Q value stays the same
-            if old_q_val == q_val:
+            if q == q_new:
                 self.convergence_cnt += 1
             else:
                 self.convergence_cnt = 0
 
+            if self.convergence_cnt%200 == 0 and self.convergence_cnt != 0:
+                    print("convergence_cnt: " + str(self.convergence_cnt)+" ! ")
+                    print("train time: "+str(time.time() - self.start_time))
+
+            # if the game ends restart the game
             if self.game.game_end():
                 self.game = Game()
                 #print("New Game!")
                 #print(self.game)
                 self.game_count += 1
                 continue
+
+            if self.ready_to_end():
+                self.end_train = True
         
         # update values for convergence condition check
         self.qtable_size_increment = len(self.Q.q_table) - self.qtable_size
@@ -155,15 +167,10 @@ class Train(object):
             self.start_time = time.time()
             # train
             b = 0
-            while not self.ready_to_end():
+            while not self.end_train:
                 #print('TRAINING BATCH {}'.format(b))
                 self.train()
                 b += 1 
-
-                if self.convergence_cnt%50 == 0 and self.convergence_cnt != 0:
-                    print("Batch: "+str(b))
-                    print("convergence_cnt: " + str(self.convergence_cnt)+" ! ")
-                    print("train time: "+str(time.time() - self.start_time))
                 
                 #print('TESTING BATCH {}'.format(b))
                 #self.test()
