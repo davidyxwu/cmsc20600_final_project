@@ -10,7 +10,7 @@ NO_ACTION = 9
 class Qtable(object):
     def __init__(self):
         self.q_table = {} #keys are (hash_key,action) tuple
-        self.default_value = 50.0
+        self.default_value = 0.0
 
     def __str__(self):
         string = ""

@@ -186,7 +186,7 @@ class Game(object):
             6:1, 3:1, 8:2, 7:2, 2:3, 5:3}
             return (rotation, rotation_cnt[grid])
 
-    # return grid number after transformations --> buggy!
+    # return grid number after transformations 
     def transform_grid(self, grid):
         for op, cnt in self.operations:
             for i in range(cnt):
