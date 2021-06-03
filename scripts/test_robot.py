@@ -198,8 +198,9 @@ class test_robot(object):
         if not self.initialized or self.hsv is None or self.image is None or self.laserscan is None:
             return
 
-        # Mask
-        mask = cv2.inRange(self.hsv, HSV_COLOR_RANGES[self.color][0], HSV_COLOR_RANGES[self.color][1])
+        # dumbbell_mask
+        dumbbell_mask = cv2.inRange(self.hsv, HSV_COLOR_RANGES[self.color][0], HSV_COLOR_RANGES[self.color][1])
+        grid_mask = cv2.inRange(self.hsv, HSV_COLOR_RANGES["green"][0], HSV_COLOR_RANGES["green"][1])
 
         # Dimensions
         h, w, d = self.image.shape
@@ -208,9 +209,9 @@ class test_robot(object):
         dist = min(self.laserscan_front)
 
         # determine center of color pixels
-        M = cv2.moments(mask)
-        # if the target color is in sight
-        if M['m00'] > 0:
+        M = cv2.moments(dumbbell_mask)
+        # if the target color is in sight and the dumbbell is not on the grid
+        if M['m00'] > 0 and cv2.countNonZero(grid_mask) == 0:
             # determine the center of the color pixels in the image
             cx = int(M['m10']/M['m00'])
             err = w/2 - cx # error
