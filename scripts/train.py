@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+
 import random
 import numpy as np
+import json
 from q_table import Qtable, Value
 from game import Game, PLAYER_O,PLAYER_X
 NO_ACTION = 9
@@ -10,7 +13,7 @@ class Train(object):
     def __init__(self):
         self.alpha = 0.5
         self.gamma = 0.8
-        self.num_batches = 100
+        self.num_batches = 1
         self.batch_size = 1e4
         self.game = Game()
         self.states = []
@@ -120,17 +123,20 @@ class Train(object):
             self.game.move(move)
         print(self.game)
 
+    def save(self):
+        with open(r'qtable.txt','w+') as f:
+            f.write(str(self.Q.q_table))
 
     def run(self):
+        # train
         for b in range(self.num_batches):
             print('TRAINING BATCH {}'.format(b))
             self.train()
             #print('TESTING BATCH {}'.format(b))
             #self.test()
-
-
-
-
+        
+        # save to txt file
+        self.save()
 
 if __name__ == '__main__':
 
