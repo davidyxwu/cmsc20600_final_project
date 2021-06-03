@@ -1,0 +1,2 @@
+string player
+bool node_initialized
