@@ -60,8 +60,8 @@ class GameNode(object):
         last_player = self.game.player
         self.game.move(position)
         self.gamestate_pub.publish(GameState(last_player=last_player, curr_player=self.game.player,
-                                    last_move=position, game_end=self.game.game_end(), board=self.game.board))
-        print("In update game, board:", self.game.board)
+                                    last_move=position, game_end=self.game.check_for_winner(), board=self.game.board))
+        print("In update game, board:", self.game.board, self.game.check_for_winner())
 
     def run(self):
         # Keep the program alive.
