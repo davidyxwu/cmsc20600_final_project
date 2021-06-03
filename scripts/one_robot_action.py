@@ -92,11 +92,12 @@ class OneRobot(object):
         self.hsv = None
         self.laserscan = None
         self.laserscan_front = None
-        self.color = PLAYER_BLUE
+        self.color = "blue"
         self.state = STOP
 
         # Store actions in list as they are recieved in the callback
-        self.actions = []
+        self.red_actions = []
+        self.blue_actions = []
 
         # Current action
         self.action_in_progress = None
@@ -173,7 +174,7 @@ class OneRobot(object):
             return
         print("Recieved red action")
         #if data is not None:
-        self.actions.append(data)
+        self.red_actions.append(data)
 
     """Callback for actions"""
     def blue_action_callback(self, data):
@@ -181,7 +182,7 @@ class OneRobot(object):
             return
         print("Received blue action")
         #if data is not None:
-        self.actions.append(data)
+        self.blue_actions.append(data)
 
     """Publish movement"""
     def pub_cmd_vel(self, lin, ang):
@@ -332,25 +333,41 @@ class OneRobot(object):
 
     # execute action
     def get_action(self):
-        if not self.initialized or self.hsv is None or self.image is None or self.laserscan is None or not self.actions:
+        if not self.initialized or self.hsv is None or self.image is None or self.laserscan is None:
             return
 
-        print(self.actions)
+        print(self.red_actions, self.blue_actions)
+        if self.color == "blue" and self.red_actions:
+            # Pop the next action to be done
+            self.action_in_progress = self.red_actions.pop(0)
 
-        # Pop the next action to be done
-        self.action_in_progress = self.actions.pop(0)
+            # Get color of player to go to and set state accordingly
+            color = self.action_in_progress.player
+            if color == PLAYER_BLUE:
+                self.color = 'blue'
+            else:
+                self.color = 'red'
+            if self.color == 'red':
+                self.state = RED
+            elif self.color == 'blue':
+                self.state = BLUE
+            return
+        elif self.color == "red" and self.blue_actions:
+            # Pop the next action to be done
+            self.action_in_progress = self.blue_actions.pop(0)
 
-        # Get color of player to go to and set state accordingly
-        color = self.action_in_progress.player
-        if color == PLAYER_BLUE:
-            self.color = 'blue'
-        else:
-            self.color = 'red'
-        if self.color == 'red':
-            self.state = RED
-        elif self.color == 'blue':
-            self.state = BLUE
-        return
+            # Get color of player to go to and set state accordingly
+            color = self.action_in_progress.player
+            if color == PLAYER_BLUE:
+                self.color = 'blue'
+            else:
+                self.color = 'red'
+            if self.color == 'red':
+                self.state = RED
+            elif self.color == 'blue':
+                self.state = BLUE
+            return
+
 
 
     """The driver of our node, calls functions dpending on state"""
