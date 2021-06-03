@@ -24,12 +24,14 @@ class GameNode(object):
         self.blue_action_sub = rospy.Subscriber("/tictactoe/blue_action", Action, self.blue_action_callback)
 
         # Subscribe to red robot action
-        self.red_action_sub = rospy.Subscriber("/tictactoe/blue_action", Action, self.blue_action_callback)
+        self.red_action_sub = rospy.Subscriber("/tictactoe/red_action", Action, self.red_action_callback)
 
         self.game = Game()
 
+        self.actions = []
+
         # Subscribe to node_status
-        self.action_node_status = rospy.Subscriber("/node_status", RobotInitialized, self.node_status_callback)
+        self.action_node_status = rospy.Subscriber("/tictactoe/node_status", RobotInitialized, self.node_status_callback)
 
         self.initialized = True
         print("Game node initialized!")
@@ -40,24 +42,26 @@ class GameNode(object):
         self.gamestate_pub.publish(GameState(last_player=PLAYER_BLUE, curr_player=PLAYER_RED, board=self.game.board))
 
     def blue_action_callback(self, data):
+        print("Received blue action")
         if not self.initialized:
             return
-
-        if data:
-            self.update_game(data.position)
+        self.actions.append(data)
+        self.update_game(data.position)
 
     def red_action_callback(self, data):
+        print("Received red action")
         if not self.initialized:
             return
-
-        if data:
-            self.update_game(data.position)
+        self.actions.append(data)
+        self.update_game(data.position)
 
     def update_game(self, position):
+        print(self.actions)
         last_player = self.game.player
         self.game.move(position)
         self.gamestate_pub.publish(GameState(last_player=last_player, curr_player=self.game.player,
                                     last_move=position, game_end=self.game.game_end(), board=self.game.board))
+        print("In update game, board:", self.game.board)
 
     def run(self):
         # Keep the program alive.

@@ -2,7 +2,7 @@
 
 import rospy, cv2,  cv_bridge
 import numpy as np
-import keras_ocr
+from game import PLAYER_RED, PLAYER_BLUE
 import moveit_commander
 import math
 import actionlib
@@ -92,7 +92,7 @@ class OneRobot(object):
         self.hsv = None
         self.laserscan = None
         self.laserscan_front = None
-        self.color = None
+        self.color = PLAYER_BLUE
         self.state = STOP
 
         # Store actions in list as they are recieved in the callback
@@ -114,14 +114,14 @@ class OneRobot(object):
 
         # Set up subscribers for robot actions
         rospy.Subscriber("/tictactoe/red_action", Action, self.red_action_callback)
-        rospy.Subscriber("/tictactoe/red_action", Action, self.blue_action_callback)
+        rospy.Subscriber("/tictactoe/blue_action", Action, self.blue_action_callback)
 
         # Set gripper to initial starting point
         self.reset_gripper()
 
         # initialize node status publisher
-        self.node_status_pub = rospy.Publisher("/node_status", RobotInitialized, queue_size=10)
-
+        self.node_status_pub = rospy.Publisher("/tictactoe/node_status", RobotInitialized, queue_size=10)
+        rospy.sleep(1)
         self.initialized = True
 
         # tell dispatch_actions node to start publish actions
@@ -171,6 +171,7 @@ class OneRobot(object):
     def red_action_callback(self, data):
         if not self.initialized:
             return
+        print("Recieved red action")
         #if data is not None:
         self.actions.append(data)
 
@@ -178,6 +179,7 @@ class OneRobot(object):
     def blue_action_callback(self, data):
         if not self.initialized:
             return
+        print("Received blue action")
         #if data is not None:
         self.actions.append(data)
 
@@ -223,7 +225,7 @@ class OneRobot(object):
             self.state = SIX
         elif grid == 7:
             self.state = SEVEN
-        elif grid == 1:
+        elif grid == 8:
             self.state = EIGHT
 
 
@@ -244,8 +246,8 @@ class OneRobot(object):
     def move_back(self):
         # move back away from dumbbell
         init_time = rospy.Time.now().to_sec()
-        while not rospy.is_shutdown() and rospy.Time.now().to_sec() - init_time < 1.0:
-            self.pub_cmd_vel(-0.2, 0)
+        while not rospy.is_shutdown() and rospy.Time.now().to_sec() - init_time < 2.0:
+            self.pub_cmd_vel(-0.3, 0)
         self.pub_cmd_vel(0, 0)
 
 
@@ -291,6 +293,7 @@ class OneRobot(object):
             self.pub_cmd_vel(0, 0.2)
 
     def move_grid(self, xy):
+        print(xy)
         # Define a client for to send goal requests to the move_base server through a SimpleActionClient
         ac = actionlib.SimpleActionClient("move_base", MoveBaseAction)
 
@@ -319,7 +322,7 @@ class OneRobot(object):
         if (ac.get_state() == GoalStatus.SUCCEEDED):
             rospy.loginfo("Goal success")
             if self.state == RED or self.state == BLUE:
-                self.state = PICKUP
+                self.state = DUMBBELL
             else:
                 self.state = DROP
             return True
@@ -332,24 +335,30 @@ class OneRobot(object):
         if not self.initialized or self.hsv is None or self.image is None or self.laserscan is None or not self.actions:
             return
 
+        print(self.actions)
+
         # Pop the next action to be done
         self.action_in_progress = self.actions.pop(0)
 
         # Get color of player to go to and set state accordingly
         color = self.action_in_progress.player
-        self.color = color
-        if color == 'red':
+        if color == PLAYER_BLUE:
+            self.color = 'blue'
+        else:
+            self.color = 'red'
+        if self.color == 'red':
             self.state = RED
-        elif color == 'blue':
+        elif self.color == 'blue':
             self.state = BLUE
         return
+
 
     """The driver of our node, calls functions dpending on state"""
     def run(self):
         r = rospy.Rate(5)
         while not rospy.is_shutdown():
             if self.initialized:
-                print(self.state)
+                print(self.state, self.action_in_progress)
                 if self.state == DUMBBELL:
                     # Go to dumbell color
                     self.move_to_dumbell()

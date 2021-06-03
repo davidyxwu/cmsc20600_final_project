@@ -40,5 +40,10 @@ This launch file launches the world for one robot
   <!-- Run a transformation between the robot and its laser -->
   <node pkg="tf" type="static_transform_publisher" name="link3_broadcaster" args="0.0 0.0 0.1016 0 0 0 /base_footprint /camera_rgb_optical_frame 100" />
 
+  <!--Communicatio nodes-->
+  <node name="BlueRDPlayer" pkg="cmsc20600_final_project" type="BlueRDPlayer.py" output="screen"/>
 
+  <node name="RedRDPlayer" pkg="cmsc20600_final_project" type="RedRDPlayer.py" output="screen"/>
+
+  <node name="GameNode" pkg="cmsc20600_final_project" type="GameNode.py" output="screen"/>
 </launch>
