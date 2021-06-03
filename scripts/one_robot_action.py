@@ -10,6 +10,7 @@ from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist, Point, PoseWithCovariance, PoseWithCovarianceStamped
 from sensor_msgs.msg import LaserScan
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from cmsc20600_final_project.msg import Action, RobotInitialized
 from actionlib_msgs.msg import *
 
 
@@ -50,14 +51,21 @@ ZERO = '0'
 ONE = '1'
 TWO = '2'
 THREE = '3'
+FOUR = '4'
+FIVE = '5'
+SIX = '6'
+SEVEN = '7'
+EIGHT = '8'
+RED = 'red'
+BLUE = 'blue'
 
 
-class test_robot(object):
+class OneRobot(object):
 
     def __init__(self):
         self.initialized = False
         # init rospy node
-        rospy.init_node("test_robot")
+        rospy.init_node("one_robot_action")
 
         # set up ROS and CV bridge
         self.bridge = cv_bridge.CvBridge()
@@ -66,10 +74,10 @@ class test_robot(object):
         self.image_sub = rospy.Subscriber('/camera/rgb/image_raw',
                         Image, self.image_callback)
 
+        rospy.sleep(1)
         # subscribe to robot's laser scan
         rospy.Subscriber("/scan", LaserScan, self.scan_callback)
 
-        rospy.sleep(1)
         # the interface to the group of joints making up the turtlebot3
         # openmanipulator arm
         self.move_group_arm = moveit_commander.MoveGroupCommander("arm")
@@ -78,13 +86,20 @@ class test_robot(object):
         # openmanipulator gripper
         self.move_group_gripper = moveit_commander.MoveGroupCommander("gripper")
 
+        print("set up movegroup")
         # Set image, hsv, scan data to be NONE for now
         self.image = None
         self.hsv = None
         self.laserscan = None
         self.laserscan_front = None
-        self.color = "red"
-        self.state = DUMBBELL
+        self.color = None
+        self.state = STOP
+
+        # Store actions in list as they are recieved in the callback
+        self.actions = []
+
+        # Current action
+        self.action_in_progress = None
 
         # Set up publisher for movement
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel',
@@ -97,14 +112,23 @@ class test_robot(object):
         rospy.sleep(1)
         self.init_pose()
 
+        # Set up subscribers for robot actions
+        rospy.Subscriber("/tictactoe/red_action", Action, self.red_action_callback)
+        rospy.Subscriber("/tictactoe/red_action", Action, self.blue_action_callback)
+
         # Set gripper to initial starting point
         self.reset_gripper()
+
+        # initialize node status publisher
+        self.node_status_pub = rospy.Publisher("/node_status", RobotInitialized, queue_size=10)
 
         self.initialized = True
 
         # tell dispatch_actions node to start publish actions
-        rospy.sleep(1)
+        print("Robot initialized!")
+        self.node_status_pub.publish(RobotInitialized(player="both", node_initialized=True))
 
+    """Publish initial pose for robot"""
     def init_pose(self):
         init_pose = PoseWithCovariance()
         init_pose.pose.position.x = GRID_LOCATIONS["red"][0]
@@ -124,7 +148,6 @@ class test_robot(object):
         init_pose_stamped.pose = init_pose
         init_pose_stamped.header.frame_id = "map"
         self.init_pose_pub.publish(init_pose_stamped)
-        rospy.sleep(2)
 
     """Callback for lidar scan"""
     def scan_callback(self, data):
@@ -143,6 +166,20 @@ class test_robot(object):
         # converts the incoming ROS message to cv2 format and HSV (hue, saturation, value)
         self.image = self.bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
         self.hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
+
+    """Callback for actions"""
+    def red_action_callback(self, data):
+        if not self.initialized:
+            return
+        #if data is not None:
+        self.actions.append(data)
+
+    """Callback for actions"""
+    def blue_action_callback(self, data):
+        if not self.initialized:
+            return
+        #if data is not None:
+        self.actions.append(data)
 
     """Publish movement"""
     def pub_cmd_vel(self, lin, ang):
@@ -169,7 +206,26 @@ class test_robot(object):
         self.move_group_gripper.stop()
         #self.move_back()
         self.pub_cmd_vel(0,0)
-        self.state = THREE
+        grid = self.action_in_progress.position
+        if grid == 0:
+            self.state = ZERO
+        elif grid == 1:
+            self.state = ONE
+        elif grid == 2:
+            self.state = TWO
+        elif grid == 3:
+            self.state = THREE
+        elif grid == 4:
+            self.state = FOUR
+        elif grid == 5:
+            self.state = FIVE
+        elif grid == 6:
+            self.state = SIX
+        elif grid == 7:
+            self.state = SEVEN
+        elif grid == 1:
+            self.state = EIGHT
+
 
 
     """Drop dumbell from gripper"""
@@ -262,17 +318,38 @@ class test_robot(object):
 
         if (ac.get_state() == GoalStatus.SUCCEEDED):
             rospy.loginfo("Goal success")
-            self.state = DROP
+            if self.state == RED or self.state == BLUE:
+                self.state = PICKUP
+            else:
+                self.state = DROP
             return True
         else:
             rospy.loginfo("Goal Fail")
             return False
+
+    # execute action
+    def get_action(self):
+        if not self.initialized or self.hsv is None or self.image is None or self.laserscan is None or not self.actions:
+            return
+
+        # Pop the next action to be done
+        self.action_in_progress = self.actions.pop(0)
+
+        # Get color of player to go to and set state accordingly
+        color = self.action_in_progress.player
+        self.color = color
+        if color == 'red':
+            self.state = RED
+        elif color == 'blue':
+            self.state = BLUE
+        return
 
     """The driver of our node, calls functions dpending on state"""
     def run(self):
         r = rospy.Rate(5)
         while not rospy.is_shutdown():
             if self.initialized:
+                print(self.state)
                 if self.state == DUMBBELL:
                     # Go to dumbell color
                     self.move_to_dumbell()
@@ -282,13 +359,35 @@ class test_robot(object):
                 elif self.state == DROP:
                     # Drop dumbell
                     self.drop_gripper()
+                elif self.state == ZERO:
+                    self.move_grid(GRID_LOCATIONS[ZERO])
+                elif self.state == ONE:
+                    self.move_grid(GRID_LOCATIONS[ONE])
+                elif self.state == TWO:
+                    self.move_grid(GRID_LOCATIONS[TWO])
                 elif self.state == THREE:
                     self.move_grid(GRID_LOCATIONS[THREE])
+                elif self.state == FOUR:
+                    self.move_grid(GRID_LOCATIONS[FOUR])
+                elif self.state == FIVE:
+                    self.move_grid(GRID_LOCATIONS[FIVE])
+                elif self.state == SIX:
+                    self.move_grid(GRID_LOCATIONS[SIX])
+                elif self.state == SEVEN:
+                    self.move_grid(GRID_LOCATIONS[SEVEN])
+                elif self.state == EIGHT:
+                    self.move_grid(GRID_LOCATIONS[EIGHT])
+                elif self.state == RED:
+                    self.move_grid(GRID_LOCATIONS[RED])
+                elif self.state == BLUE:
+                    self.move_grid(GRID_LOCATIONS[BLUE])
+                elif self.state == STOP:
+                    # Done with action, wait for next one
+                    self.get_action()
             r.sleep()
-
 
 
 if __name__ == '__main__':
     # Declare a node and run it.
-    node = test_robot()
+    node = OneRobot()
     node.run()

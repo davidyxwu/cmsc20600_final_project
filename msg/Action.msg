@@ -1,2 +1,2 @@
 string player
-int position
+int16 position

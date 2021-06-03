@@ -1,4 +1,5 @@
-string current_player
+int16 last_player
+int16 curr_player
 int16 last_move
-BoardRow[] board
-
+bool game_end
+int16[] board
