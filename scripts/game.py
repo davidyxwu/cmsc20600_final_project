@@ -38,6 +38,7 @@ class Game(object):
         self.hash_board = [0] * 9 # board for hashing, optimized for first 2 steps
         self.player = PLAYER_RED # current player
         self.open_grid = 9 # count number of open grids
+        self.result = "playing"
 
         # operations (rotation/flip) for optimization
         self.operations = []
@@ -54,20 +55,93 @@ class Game(object):
             str += line
         return str
 
+    def check_dir(self, pos, direc):
+        """
+        Advance direction to see who won (advance by 1)
+        """
+        row = pos // 3
+        col = pos % 3
+        row += direc[0]
+        if row < 0 or row > 2:
+            return -1
+        col += direc[1]
+        if col < 0 or col > 2:
+            return -1
+
+        return row * 3 + col
+
+    def check_win_in_dir(self, pos, direc):
+        """
+        Checks and returns whether there are 3 pieces of the same side in a row if following direction dir
+        """
+        player = self.board[pos]
+        # Checking if inputed position is empty
+        if player == NO_PLAYER:
+            return False
+
+        p1 = int(self.check_dir(pos, direc))
+        p2 = int(self.check_dir(p1, direc))
+
+        if p1 == -1 or p2 == -1:
+            return False
+
+        # Win!
+        if player == self.board[p1] and player == self.board[p2]:
+            return True
+        else:
+            return False
+
+    def who_won(self) -> int:
+        """
+        Check whether either side has won the game and return the winner
+        :return: If one player has won, that player; otherwise resmume playing
+        """
+        win_check_directions = {0: [(1, 1), (1, 0), (0, 1)],
+                      1: [(1, 0)],
+                      2: [(1, 0), (1, -1)],
+                      3: [(0, 1)],
+                      6: [(0, 1)]}
+        for start_pos in win_check_directions:
+            if self.board[start_pos] != NO_PLAYER:
+                for direction in win_check_directions[start_pos]:
+                    win = self.check_win_in_dir(start_pos, direction)
+                    if win:
+                        return self.board[start_pos]
+
+        return NO_PLAYER
+
+    # This function checks if there is a winner yet and updates self.winner accordingly
+    def check_for_winner(self):
+        """
+        Check whether either side has won the game
+        :return: Whether a side has won the game
+        """
+        win_check_directions = {0: [(1, 1), (1, 0), (0, 1)],
+                      1: [(1, 0)],
+                      2: [(1, 0), (1, -1)],
+                      3: [(0, 1)],
+                      6: [(0, 1)]}
+        for start_pos in win_check_directions:
+            if self.board[start_pos] != NO_PLAYER:
+                for direction in win_check_directions[start_pos]:
+                    win = self.check_win_in_dir(start_pos, direction)
+                    if win:
+                        return True
+
+        return False
+
     # check whether the current player has won
     def has_won(self, grid):
         if grid == -1:
             return False
-
-        win_val = self.player * 3
 
         # check column
         sum = 0
         for i in range(3):
             pos = (grid + 3*i)%9
             if self.player == self.board[pos]:
-                sum += self.board[pos]
-        if sum == win_val:
+                sum += 1
+        if sum == 3:
             return True
 
         # check row
@@ -76,20 +150,20 @@ class Game(object):
         for i in range(3):
             pos = row*3+i
             if self.player == self.board[pos]:
-                sum += self.board[row*3+i]
-        if sum == win_val:
+                sum += 1
+        if sum == 3:
             return True
 
         # check diagonals
         sum1 = 0
         for i in [0,4,8]:
             if self.player == self.board[i]:
-                sum1 += self.board[i]
+                sum1 += 1
         sum2 = 0
         for i in [2,4,6]:
             if self.player == self.board[i]:
-                sum2 += self.board[i]
-        if sum1 == win_val or sum2 == win_val:
+                sum2 += 1
+        if sum1 == 3 or sum2 == 3:
             return True
 
         # no winner yet
