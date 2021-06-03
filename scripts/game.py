@@ -35,10 +35,9 @@ class Game(object):
     def __init__(self):
         self.board = [0] * 9 # 3X3 board in row-major order 
         self.last_move = -1 # track last move
-        self.hash_board = self.board # board for hashing, optimized for first 2 steps  
+        self.hash_board = [0] * 9 # board for hashing, optimized for first 2 steps  
         self.player = PLAYER_O # current player 
         self.open_grid = 9 # count number of open grids
-        self.last_move = -1
 
         # operations (rotation/flip) for optimization
         self.operations = []
@@ -57,6 +56,9 @@ class Game(object):
 
     # check whether the current player has won
     def has_won(self, grid): 
+        if grid == -1:
+            return False
+
         win_val = self.player * 3
 
         # check column
@@ -94,9 +96,8 @@ class Game(object):
         return False 
 
     # check whether the game ends after current move 
-    def game_end(self, grid=-1): #by defualt use last move
-        if grid==-1:
-            grid = self.last_move
+    def game_end(self): #by defualt use last move
+        grid = self.last_move
         if self.has_won(grid) or self.open_grid == 0:
             return True
         return False
@@ -126,7 +127,7 @@ class Game(object):
         # update board 
         self.board[grid] = self.player
         # update hash_board
-        self.hash_board[self.transform_grid[grid]] = self.player
+        self.hash_board[self.transform_grid(grid)] = self.player
         # update open grid count
         self.open_grid -= 1
         # update last_move
@@ -139,6 +140,7 @@ class Game(object):
             self.player = PLAYER_O
 
         self.last_move = grid
+
         return 
 
     # return reward for each move 
@@ -150,7 +152,7 @@ class Game(object):
                 return WIN_REWARD
             else:
                 return LOSS_REWARD
-        elif self.game_end(grid): 
+        elif self.game_end(): 
             return TIE_REWARD
         else:
             return OTHER_REWARD    
@@ -184,12 +186,24 @@ class Game(object):
             6:1, 3:1, 8:2, 7:2, 2:3, 5:3}
             return (rotation, rotation_cnt[grid])
 
-    # return grid number after transformations
+    # return grid number after transformations --> buggy!
     def transform_grid(self, grid):
         for op, cnt in self.operations:
-            for i in cnt:
+            for i in range(cnt):
                 grid = op[grid]
         return grid 
+
+
+if __name__ == '__main__':
+    game = Game()
+    print(game)
+    print(game.get_valid_moves())
+    game.move(0)
+    print(game)
+    print(game.get_valid_moves())
+    game.move(7)
+    print(game)
+    print(game.get_valid_moves())
             
 
 
