@@ -24,7 +24,7 @@ class Train(object):
         self.qtable_size = 0
         self.qtable_size_increment = 0
         self.convergence_cnt = 0 
-        self.convergence_criteria = 10000
+        self.convergence_criteria = 4e4
         self.end_train = False
 
         self.Q = Qtable()
@@ -73,6 +73,7 @@ class Train(object):
             # if player O is active
             if self.game.player == PLAYER_MAX:
                 a = max(moves,key=lambda m: self.Q.get_q_value(state,m,NO_ACTION))
+                if a == 9:
                 o = NO_ACTION
                 self.game.move(a)
                 #print("3 - o move to "+str(a))
@@ -117,7 +118,7 @@ class Train(object):
             else:
                 self.convergence_cnt = 0
 
-            if self.convergence_cnt%200 == 0 and self.convergence_cnt != 0:
+            if self.convergence_cnt%1000 == 0 and self.convergence_cnt != 0:
                     print("convergence_cnt: " + str(self.convergence_cnt)+" ! ")
                     print("train time: "+str(time.time() - self.start_time))
 
