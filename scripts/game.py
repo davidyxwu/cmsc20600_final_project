@@ -172,7 +172,7 @@ class Game(object):
     # check whether the game ends after current move
     def game_end(self): #by defualt use last move
         grid = self.last_move
-        if self.has_won(grid) or self.open_grid == 0:
+        if self.check_for_winner() or self.open_grid == 0:
             return True
         return False
 
@@ -219,7 +219,7 @@ class Game(object):
 
     # return reward for each move
     def reward(self, grid):
-        if self.has_won(grid):
+        if self.check_for_winner():
             #print("Player " + PLAYER_SYMBOL[self.player]+ "has won!")
             # return reward
             if self.player == PLAYER_RED:
