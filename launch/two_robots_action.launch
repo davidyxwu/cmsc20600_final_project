@@ -1,7 +1,15 @@
 <launch>
     <!-- run blue action node -->
-  <node name="blue_action" pkg="cmsc20600_final_project" type="blue.py" output="screen"/>
+  <group ns = "blue">
+    <node name="blue_action" pkg="cmsc20600_final_project" type="blue.py" output="screen"/>
+        <!---Move it-->
+    <include file="$(find turtlebot3_manipulation_moveit_config)/launch/move_group.launch" />
+  </group>
 
   <!-- run red action node -->
-  <node name="red_action" pkg="cmsc20600_final_project" type="red.py" output="screen"/>
+  <group ns = "red">
+    <node name="red_action" pkg="cmsc20600_final_project" type="red.py" output="screen"/>
+        <!---Move it-->
+    <include file="$(find turtlebot3_manipulation_moveit_config)/launch/move_group.launch" />
+  </group>
 </launch>

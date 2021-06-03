@@ -5,9 +5,9 @@ import numpy as np
 from random import randint
 
 NO_PLAYER = 0
-PLAYER_O = 1
-PLAYER_X = 2
-PLAYER_SYMBOL = {PLAYER_O : 'O', PLAYER_X : 'X', 0: '_'}
+PLAYER_RED = 1
+PLAYER_BLUE = 2
+PLAYER_SYMBOL = {PLAYER_RED : 'O', PLAYER_BLUE : 'X', 0: '_'}
 
 WIN_REWARD = 100.0 # with respect to player O
 TIE_REWARD = 50.0
@@ -17,12 +17,12 @@ OTHER_REWARD = 0.0
 # clockwise rotation of the board grids
 rotation = {
     0:2, 2:8, 8:6, 6:0,
-    1:5, 5:7, 7:3, 3:1, 
+    1:5, 5:7, 7:3, 3:1,
     4:4}
 
 # diagonal flip
 flip_diag = {
-    0:0, 4:4, 8:8, 
+    0:0, 4:4, 8:8,
     3:1, 6:2, 7:5, 1:3, 2:6, 5:7}
 
 # vertical flip
@@ -33,10 +33,10 @@ flip_ver = {
 
 class Game(object):
     def __init__(self):
-        self.board = [0] * 9 # 3X3 board in row-major order 
+        self.board = [0] * 9 # 3X3 board in row-major order
         self.last_move = -1 # track last move
-        self.hash_board = self.board # board for hashing, optimized for first 2 steps  
-        self.player = PLAYER_O # current player 
+        self.hash_board = self.board # board for hashing, optimized for first 2 steps
+        self.player = PLAYER_RED # current player
         self.open_grid = 9 # count number of open grids
         self.last_move = -1
 
@@ -56,11 +56,11 @@ class Game(object):
         return str
 
     # check whether the current player has won
-    def has_won(self, grid): 
+    def has_won(self, grid):
         win_val = self.player * 3
 
         # check column
-        sum = 0 
+        sum = 0
         for i in range(3):
             pos = (grid + 3*i)%9
             if self.player == self.board[pos]:
@@ -69,7 +69,7 @@ class Game(object):
             return True
 
         # check row
-        sum = 0 
+        sum = 0
         row = grid // 3
         for i in range(3):
             pos = row*3+i
@@ -91,9 +91,9 @@ class Game(object):
             return True
 
         # no winner yet
-        return False 
+        return False
 
-    # check whether the game ends after current move 
+    # check whether the game ends after current move
     def game_end(self, grid=-1): #by defualt use last move
         if grid==-1:
             grid = self.last_move
@@ -101,17 +101,17 @@ class Game(object):
             return True
         return False
 
-    # check if move is valid 
+    # check if move is valid
     def valid_move(self, grid):
-        # if the grid has not been occupied 
+        # if the grid has not been occupied
         if self.board[grid] == 0:
             return True
         return False
 
     def get_valid_moves(self):
         return [i for i in range(len(self.board)) if self.valid_move(i)]
-     
-    # make move   
+
+    # make move
     def move(self, grid):
 
         assert self.board[grid] == 0
@@ -123,37 +123,37 @@ class Game(object):
         if self.open_grid == 8:
             self.operations.append(self.move2_state_optimization(grid))
 
-        # update board 
+        # update board
         self.board[grid] = self.player
         # update hash_board
         self.hash_board[self.transform_grid[grid]] = self.player
         # update open grid count
         self.open_grid -= 1
         # update last_move
-        self.last_move = grid 
+        self.last_move = grid
 
         # set next player
-        if self.player == PLAYER_O:
-            self.player = PLAYER_X
+        if self.player == PLAYER_RED:
+            self.player = PLAYER_BLUE
         else:
-            self.player = PLAYER_O
+            self.player = PLAYER_RED
 
         self.last_move = grid
-        return 
+        return
 
-    # return reward for each move 
+    # return reward for each move
     def reward(self, grid):
         if self.has_won(grid):
             #print("Player " + PLAYER_SYMBOL[self.player]+ "has won!")
-            # return reward 
-            if self.player == PLAYER_O:
+            # return reward
+            if self.player == PLAYER_RED:
                 return WIN_REWARD
             else:
                 return LOSS_REWARD
-        elif self.game_end(grid): 
+        elif self.game_end(grid):
             return TIE_REWARD
         else:
-            return OTHER_REWARD    
+            return OTHER_REWARD
 
     # consider the boards to be the same w.r.t rotations, return number of rotations needed
     def move1_state_optimization(self, grid):
@@ -162,10 +162,10 @@ class Game(object):
             6:1, 3:1, 8:2, 7:2, 2:3, 5:3}
         return (rotation, rotation_cnt[grid])
 
-    # consider the boards to be the same w.r.t certain rotations/flips, 
+    # consider the boards to be the same w.r.t certain rotations/flips,
     def move2_state_optimization(self, grid):
         last_move_transformed = self.transform_grid(self.last_move)
-       
+
         if last_move_transformed == 0:
             flip_cnt = {
                 0:0, 1:0, 2:0, 4:0, 5:0, 8:0,
@@ -176,7 +176,7 @@ class Game(object):
             flip_cnt = {
                 0:0, 3:0, 6:0, 1:0, 4:0, 7:0,
                 2:1, 5:1, 8:1}
-            return (flip_ver, flip_cnt[grid]) 
+            return (flip_ver, flip_cnt[grid])
         # last_move_transformed == 4
         else:
             rotation_cnt = {
@@ -189,19 +189,4 @@ class Game(object):
         for op, cnt in self.operations:
             for i in cnt:
                 grid = op[grid]
-        return grid 
-            
-
-
-
-
-
-
-            
-
-
-
-
-    
-
-
+        return grid
