@@ -1,2 +1,2 @@
-string player
-int position
+int16 player
+int16 position
