@@ -293,6 +293,8 @@ class OneRobot(object):
             # spin until we see image
             self.pub_cmd_vel(0, 0.2)
 
+    """Move to a coordinate on the grid
+    Source: https://edu.gaitech.hk/turtlebot/map-navigation.html"""
     def move_grid(self, xy):
         print(xy)
         # Define a client for to send goal requests to the move_base server through a SimpleActionClient

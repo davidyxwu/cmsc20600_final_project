@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Min Tic-Tac-Toe player (an action node that publishes actions for robot2 - PLAYER_BLUE)
+# Max Tic-Tac-Toe player (an action node that publishes actions for robot1 - PLAYER_red)
 
 import rospy
 from game import Game, PLAYER_BLUE, PLAYER_RED, PLAYER_SYMBOL
@@ -27,13 +27,13 @@ def read_qtable():
     dic = eval(dic)
     return dic
 
-class BlueMinPlayer(object):
+class RedMaxPlayer(object):
     def __init__(self):
         self.initialized = False
-        rospy.init_node("blue_min_player")
+        rospy.init_node("red_max_player")
 
         # initialize action publisher
-        self.action_pub = rospy.Publisher("/tictactoe/blue_action", Action, queue_size=10)
+        self.action_pub = rospy.Publisher("/tictactoe/red_action", Action, queue_size=10)
 
         # subscribe to game_state publisher
         self.game_state_sub = rospy.Subscriber("/tictactoe/gamestate", GameState, self.game_state_callback)
@@ -51,25 +51,25 @@ class BlueMinPlayer(object):
         self.Q.q_table = read_qtable()
 
         self.initialized = True
-        print("Blue initialized!")
+        print("Red initialized!")
 
     # check whether it's the player's turn
     def game_state_callback(self, data):
-        print("recieved game state in blue")
+        print("recieved game state in red")
         if not self.initialized:
             return
         if data.game_end:
             return
-        # check whether Blue is the active player
-        if data.curr_player == PLAYER_BLUE:
+        # check whether red is the active player
+        if data.curr_player == PLAYER_RED:
             self.is_active_player = True
-            print("Set blue active player")
+            print("Set red active player")
         else:
             self.is_active_player = False
 
         # update board
         if self.game_node_ready:
-            assert(self.game.player == PLAYER_RED)
+            assert(self.game.player == PLAYER_BLUE)
             self.game.move(data.last_move)
             self.publish_action()
         else:
@@ -78,18 +78,18 @@ class BlueMinPlayer(object):
 
     # publish action if it's the player's turn
     def publish_action(self):
-        print("In blue publish action", self.is_active_player)
+        print("In red publish action", self.is_active_player)
         if not self.is_active_player:
             return
 
-        # get action with min q value
-        q = self.Q.get_min_q(self.game)
+        # get action with red q value
+        q = self.Q.get_max_q(self.game)
         action = self.Q.get_move_from_q(self.game, q)
 
-        print("Selecting best move for blue", action)
-        assert(self.game.player == PLAYER_BLUE)
+        print("Selecting best move for red", action)
+        assert(self.game.player == PLAYER_RED)
         self.game.move(action)
-        self.action_pub.publish(Action(player = PLAYER_BLUE, position = action))
+        self.action_pub.publish(Action(player = PLAYER_RED, position = action))
 
     def run(self):
         # Keep the program alive.
@@ -97,5 +97,5 @@ class BlueMinPlayer(object):
 
 if __name__ == '__main__':
     # Declare a node and run it.
-    node = BlueMinPlayer()
+    node = RedMaxPlayer()
     node.run()
