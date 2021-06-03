@@ -15,5 +15,6 @@
 ### One Robot
 `roscore`\
 `roslaunch cmsc20600_final_project one_robot_world.launch`\
-`roslaunch cmsc20600_final_project turtlebot3_navigation.launch`\
-`roslaunch cmsc20600_final_project test_robot.launch`\
+`roslaunch cmsc20600_final_project one_robot_navigation.launch`\
+`roslaunch cmsc20600_final_project one_robot_action.launch`\
+Change nodes in one_robot_world to match the correct player
