@@ -33,60 +33,86 @@ class Train(object):
             if max_q < min_q:
                 max_q = min_q
 
-
         return max_q
 
-
-    def get_next_action(self): #returns tuple (a,o)
+    # picks a valid move and executes it, 
+    # returns an action tuple (a,o) for the 2 players 
+    def get_next_action(self):
+        #print("get_next_action starts")
+        #print(self.game)
 
         moves = self.game.get_valid_moves()
+        # print(str(len(moves))+" available moves")
         indx = random.randint(0,len(moves) - 1)
         explore = np.random.binomial(1,self.explor)
         if explore:
+            # if player O is active
             if self.game.player == PLAYER_MAX:
                 a = moves[indx]
                 o = NO_ACTION
                 self.game.move(a)
+                #print("1 - o move to "+str(a))
+            # if player X is active
             else:
                 a = NO_ACTION
                 o = moves[indx]
                 self.game.move(o)
+                #print("2 - x move to "+str(o))
         else:
-            state = self.Q.hash_key(self.game.board)
+            state = self.Q.hash_key(self.game.hash_board)
+
+            # if player O is active
             if self.game.player == PLAYER_MAX:
                 a = max(moves,key=lambda m: self.Q.get_q_value(state,m,NO_ACTION))
                 o = NO_ACTION
                 self.game.move(a)
+                #print("3 - o move to "+str(a))
+            # if player X is active 
             else:
                 a = NO_ACTION
                 o = min(moves,key=lambda m: self.Q.get_q_value(state,NO_ACTION,m))
                 self.game.move(o)
+                #print("4 - x move to "+str(o))
+
+        # optimization for step 1 & 2
+        if o == NO_ACTION:
+            a = self.game.transform_grid(a)
+        else:
+            o = self.game.transform_grid(o)
 
         return a,o
 
     def train(self):
-
+        # start game
         self.game = Game()
         self.training_step = 0
         while self.training_step < self.batch_size:
-            prev_state = self.Q.hash_key(self.game.board)
+            prev_state = self.Q.hash_key(self.game.hash_board)
+            # execute action
             a, o = self.get_next_action()
-            next_state = self.Q.hash_key(self.game.board)
+            next_state = self.Q.hash_key(self.game.hash_board)
             r = self.game.reward(a) if o == NO_ACTION else self.game.reward(o)
+            # calculate Q value
             q_val = (1 - self.alpha) * self.Q.get_q_value(prev_state, a, o) + self.alpha * (r + self.gamma * self.value(next_state))
             self.Q.q_table[prev_state, a, o] =  q_val
             self.V.value[prev_state] = self.value(prev_state)
             self.training_step += 1
+
+            #print(self.game)
+
             if self.game.game_end():
                 self.game = Game()
+                #print("New Game!")
+                #print(self.game)
                 self.game_count += 1
                 continue
+        print("size of QTable: "+str(len(self.Q.q_table)))
 
     def test(self):
         self.game = Game()
         while not self.game.game_end():
             valid_moves = self.game.get_valid_moves()
-            state = self.Q.hash_key(self.game.board)
+            state = self.Q.hash_key(self.game.hash_board)
             if self.game.player == PLAYER_MAX:
                 move = max(valid_moves,key=lambda m: self.Q.get_q_value(state,m,NO_ACTION))
             else:
@@ -99,8 +125,8 @@ class Train(object):
         for b in range(self.num_batches):
             print('TRAINING BATCH {}'.format(b))
             self.train()
-            print('TESTING BATCH {}'.format(b))
-            self.test()
+            #print('TESTING BATCH {}'.format(b))
+            #self.test()
 
 
 
