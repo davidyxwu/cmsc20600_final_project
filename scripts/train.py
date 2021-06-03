@@ -1,4 +1,6 @@
-import random
+#!/usr/bin/env python3
+
+import random, time, sys
 import numpy as np
 from q_table import Qtable, Value
 from game import Game, PLAYER_O,PLAYER_X
@@ -10,7 +12,6 @@ class Train(object):
     def __init__(self):
         self.alpha = 0.5
         self.gamma = 0.8
-        self.num_batches = 100
         self.batch_size = 1e4
         self.game = Game()
         self.states = []
@@ -18,6 +19,13 @@ class Train(object):
         self.V = Value()
         self.training_step = 0
         self.game_count = 0
+
+        # variables for checking training status 
+        self.qtable_size = 0
+        self.qtable_size_increment = 0
+        self.convergence_cnt = 0 
+        self.convergence_criteria = 1000
+
         self.Q = Qtable()
 
     def value(self,key): #max_a min_o q(s,a,o)
@@ -93,12 +101,17 @@ class Train(object):
             next_state = self.Q.hash_key(self.game.hash_board)
             r = self.game.reward(a) if o == NO_ACTION else self.game.reward(o)
             # calculate Q value
-            q_val = (1 - self.alpha) * self.Q.get_q_value(prev_state, a, o) + self.alpha * (r + self.gamma * self.value(next_state))
+            old_q_val = self.Q.get_q_value(prev_state, a, o)
+            q_val = (1 - self.alpha) * old_q_val + self.alpha * (r + self.gamma * self.value(next_state))
             self.Q.q_table[prev_state, a, o] =  q_val
             self.V.value[prev_state] = self.value(prev_state)
             self.training_step += 1
 
-            #print(self.game)
+            # check if the Q value stays the same
+            if old_q_val == q_val:
+                self.convergence_cnt += 1
+            else:
+                self.convergence_cnt = 0
 
             if self.game.game_end():
                 self.game = Game()
@@ -106,7 +119,12 @@ class Train(object):
                 #print(self.game)
                 self.game_count += 1
                 continue
-        print("size of QTable: "+str(len(self.Q.q_table)))
+        
+        # update values for convergence condition check
+        self.qtable_size_increment = len(self.Q.q_table) - self.qtable_size
+        self.qtable_size = len(self.Q.q_table)
+            
+        #print("size of QTable: "+str(len(self.Q.q_table)))
 
     def test(self):
         self.game = Game()
@@ -120,17 +138,46 @@ class Train(object):
             self.game.move(move)
         print(self.game)
 
+    # check whether the training is ready to be terminated
+    def ready_to_end(self):
+        if self.qtable_size_increment < 20 and self.convergence_cnt >= self.convergence_criteria:
+            return True
+        else:
+            return False
+        
+    # save qtable to txt file
+    def save(self):
+        with open(r'qtable.txt','w+') as f:
+            f.write(str(self.Q.q_table))
 
     def run(self):
-        for b in range(self.num_batches):
-            print('TRAINING BATCH {}'.format(b))
-            self.train()
-            #print('TESTING BATCH {}'.format(b))
-            #self.test()
+        try: 
+            self.start_time = time.time()
+            # train
+            b = 0
+            while not self.ready_to_end():
+                #print('TRAINING BATCH {}'.format(b))
+                self.train()
+                b += 1 
 
-
-
-
+                if self.convergence_cnt%50 == 0 and self.convergence_cnt != 0:
+                    print("Batch: "+str(b))
+                    print("convergence_cnt: " + str(self.convergence_cnt)+" ! ")
+                    print("train time: "+str(time.time() - self.start_time))
+                
+                #print('TESTING BATCH {}'.format(b))
+                #self.test()
+        
+            print("qtable size: "+ str(len(self.Q.q_table)))
+            print("train time: "+str(time.time() - self.start_time))
+            self.save()
+        except KeyboardInterrupt:
+            print("Qtable size: "+ str(len(self.Q.q_table)))
+            print("Train time: "+str(time.time() - self.start_time))
+            print("Convergence cnt: "+ str(self.convergence_cnt))
+            print("Batch: " + str(b))
+            self.save()
+            sys.exit()
 
 if __name__ == '__main__':
 
