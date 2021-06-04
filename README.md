@@ -23,7 +23,7 @@ TODO
 TODO
 
 ## Project Architecture
-List each script, say what it does and what robotics algorithm we used.
+Description of each script:
 
 ```train.py```: The training of the Q-learning algorithm takes place in this script. A Q-matrix hash table is loaded, and games are repeatedly simulated and Q-values are updated throughout according to the markov game algorithm. The gameplay simulation uses game.py to hold the game state, generate valid moves at each step, and update the moves of the game.
 
@@ -58,3 +58,9 @@ List each script, say what it does and what robotics algorithm we used.
 `roslaunch cmsc20600_final_project one_robot_navigation.launch`\
 `roslaunch cmsc20600_final_project one_robot_action.launch`\
 Change nodes in one_robot_world to match the appropriate player node.
+
+#### SLAM mapping 
+`roscore`\
+`roslaunch cmsc20600_final_project slam.launch`\
+`roslaunch turtlebot3_slam turtlebot3_slam.launch slam_methods:=gmapping`\
+`roslaunch turtlebot3_teleop turtlebot3_teleop_key.launch`
