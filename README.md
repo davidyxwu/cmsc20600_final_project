@@ -118,7 +118,9 @@ Although the result is a tie as expected, the play is not optimal. This could be
 `roslaunch cmsc20600_final_project two_robots_world.launch`\
 `roslaunch cmsc20600_final_project blue_tb3_navigation.launch`\
 `roslaunch cmsc20600_final_project red_tb3_navigation.launch`\
-`roslaunch cmsc20600_final_project two_robots_action.launch`
+`roslaunch cmsc20600_final_project two_robots_action.launch`\
+Note: A lot of the two navigation launch files and resources came from [this source](https://github.com/fgonzalezr1998/RobotechVirtualChallenge)
+
 
 #### One Robot
 `roscore`\
