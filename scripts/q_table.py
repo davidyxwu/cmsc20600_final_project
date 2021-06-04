@@ -97,9 +97,11 @@ class Value(object):
             key += board[i] * (3 ** i)
         return key
 
+    # check if we encounters a new entry
     def new_entry(self,key):
         return not key in self.value
 
+    # get value from table, if a new state is encountered, hash it with default value
     def get_value(self,key):
         if not key in self.value:
             self.value[key] = self.default_value #TODO: need to include no action?
