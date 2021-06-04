@@ -104,6 +104,7 @@ However, the min/max players in the recorded random vs min/max gifs below are go
 
 ### Blue min vs Red max
 Although the result is a tie as expected, the play is not optimal. This could be a consequence of the training stategy or an error in the algorithm.
+
 ![blue min vs red max](https://github.com/davidyxwu/cmsc20600_final_project/blob/main/media/red_max_blue_min_20x.gif)
 
 
