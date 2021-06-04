@@ -13,10 +13,11 @@ def position(action):
     col = action - 3 * row
     return (row, col)
 
+"""This class is for a random player for red"""
 class RedRDPlayer(object):
     def __init__(self):
         self.initialized = False
-        rospy.init_node("red_random_player")
+        rospy.init_node("red_random_player") # init node
 
         # initialize action publisher
         self.action_pub = rospy.Publisher("/tictactoe/red_action", Action, queue_size=10)
@@ -27,7 +28,7 @@ class RedRDPlayer(object):
         # whether it's the player's turn
         self.is_active_player = False
 
-        # initialize game
+        # initialize game (matrix representation for simplicity)
         self.game = [0] * 9
 
         self.game_node_ready = False
@@ -35,10 +36,10 @@ class RedRDPlayer(object):
         self.initialized = True
         print("Red initialized!")
 
-    # check whether it's the player's turn
+    # Callback for game state
     def game_state_callback(self, data):
-        self.game_node_ready = True
         print("recieved game state in red")
+        # Return if not initialized or game ended
         if not self.initialized or not self.game_node_ready:
             return
         if data.game_end:
@@ -52,9 +53,11 @@ class RedRDPlayer(object):
 
         # update board
         if self.game_node_ready:
+            # Update player blue
             self.game[data.last_move] = PLAYER_BLUE
             self.publish_action()
         else:
+            # First move
             self.game_node_ready = True
             self.publish_action()
 

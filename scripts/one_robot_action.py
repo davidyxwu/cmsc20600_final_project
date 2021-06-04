@@ -59,7 +59,7 @@ EIGHT = '8'
 RED = 'red'
 BLUE = 'blue'
 
-
+"""This class implements the one robot implementation of dumbbell placing in tictactoe grid"""
 class OneRobot(object):
 
     def __init__(self):
@@ -92,12 +92,12 @@ class OneRobot(object):
         self.hsv = None
         self.laserscan = None
         self.laserscan_front = None
-        self.color = "blue"
+        self.color = "blue" # keep track of last player (start with blue since red goes first)
         self.state = STOP
 
-        # Store actions in list as they are recieved in the callback
-        self.red_actions = []
-        self.blue_actions = []
+        # Store actions in lists as they are recieved in the callback
+        self.red_actions = [] # red actions
+        self.blue_actions = [] # blue actions
 
         # Current action
         self.action_in_progress = None
@@ -131,6 +131,7 @@ class OneRobot(object):
 
     """Publish initial pose for robot"""
     def init_pose(self):
+        # Set up pose msg and send to /initialpose topic
         init_pose = PoseWithCovariance()
         init_pose.pose.position.x = GRID_LOCATIONS["red"][0]
         init_pose.pose.position.y = GRID_LOCATIONS["red"][1]
@@ -140,6 +141,7 @@ class OneRobot(object):
         init_pose.pose.orientation.y = 0.0
         init_pose.pose.orientation.z = 0
         init_pose.pose.orientation.w = 1.0
+        # covariance of particle cloud
         covariance = [0.16575166048810708, 0.005812119956448508, 0.0, 0.0, 0.0, 0.0,
                 0.005812119956448534, 0.163246490374612, 0.0, 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -168,7 +170,7 @@ class OneRobot(object):
         self.image = self.bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
         self.hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
 
-    """Callback for actions"""
+    """Callback for red actions"""
     def red_action_callback(self, data):
         if not self.initialized:
             return
@@ -176,7 +178,7 @@ class OneRobot(object):
         #if data is not None:
         self.red_actions.append(data)
 
-    """Callback for actions"""
+    """Callback for blue actions"""
     def blue_action_callback(self, data):
         if not self.initialized:
             return
@@ -207,8 +209,9 @@ class OneRobot(object):
         self.move_group_gripper.go(gripper_joint_goal, wait=True)
         self.move_group_arm.stop()
         self.move_group_gripper.stop()
-        #self.move_back()
+        #self.move_back() # move_base moves back automatically for us
         self.pub_cmd_vel(0,0)
+        # Determine which grid position to go to next
         grid = self.action_in_progress.position
         if grid == 0:
             self.state = ZERO
@@ -242,8 +245,10 @@ class OneRobot(object):
         self.move_back()
         self.pub_cmd_vel(0,0)
         self.reset_gripper()
+        # Change state to stop to continue action list
         self.state = STOP
 
+    """Move back slowly"""
     def move_back(self):
         # move back away from dumbbell
         init_time = rospy.Time.now().to_sec()
@@ -259,6 +264,7 @@ class OneRobot(object):
 
         # dumbbell_mask
         dumbbell_mask = cv2.inRange(self.hsv, HSV_COLOR_RANGES[self.color][0], HSV_COLOR_RANGES[self.color][1])
+        # Grid mask
         grid_mask = cv2.inRange(self.hsv, HSV_COLOR_RANGES["green"][0], HSV_COLOR_RANGES["green"][1])
 
         # Dimensions
@@ -296,7 +302,7 @@ class OneRobot(object):
     """Move to a coordinate on the grid
     Source: https://edu.gaitech.hk/turtlebot/map-navigation.html"""
     def move_grid(self, xy):
-        print(xy)
+
         # Define a client for to send goal requests to the move_base server through a SimpleActionClient
         ac = actionlib.SimpleActionClient("move_base", MoveBaseAction)
 
@@ -322,8 +328,10 @@ class OneRobot(object):
         # Wait
         ac.wait_for_result(rospy.Duration(60))
 
+        # Check status
         if (ac.get_state() == GoalStatus.SUCCEEDED):
             rospy.loginfo("Goal success")
+            # Update next state of robot
             if self.state == RED or self.state == BLUE:
                 self.state = DUMBBELL
             else:
@@ -333,12 +341,14 @@ class OneRobot(object):
             rospy.loginfo("Goal Fail")
             return False
 
-    # execute action
+    """Set up the next action from the queues"""
     def get_action(self):
+        # Make sure we have all info we need to
         if not self.initialized or self.hsv is None or self.image is None or self.laserscan is None:
             return
 
         print(self.red_actions, self.blue_actions)
+        # Red's turn
         if self.color == "blue" and self.red_actions:
             # Pop the next action to be done
             self.action_in_progress = self.red_actions.pop(0)
@@ -355,6 +365,7 @@ class OneRobot(object):
                 self.state = BLUE
             return
         elif self.color == "red" and self.blue_actions:
+            # Blue's turn
             # Pop the next action to be done
             self.action_in_progress = self.blue_actions.pop(0)
 
@@ -369,7 +380,6 @@ class OneRobot(object):
             elif self.color == 'blue':
                 self.state = BLUE
             return
-
 
 
     """The driver of our node, calls functions dpending on state"""

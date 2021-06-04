@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Max Tic-Tac-Toe player (an action node that publishes actions for robot1 - PLAYER_red)
+# Max Tic-Tac-Toe player (an action node that publishes actions for robot red - (PLAYER_red)
 
 import rospy
 from game import Game, PLAYER_BLUE, PLAYER_RED, PLAYER_SYMBOL
@@ -8,12 +8,6 @@ from q_table import Qtable as Q
 import os
 import random
 from cmsc20600_final_project.msg import Action, BoardRow, GameState
-
-# convert action (0~8) to position on the game board
-def position(action):
-    row = action % 3
-    col = action - 3 * row
-    return (row, col)
 
 # Path of directory on where Qmatrix file is located
 path_prefix_qmatrix = os.path.dirname(__file__)
@@ -27,10 +21,11 @@ def read_qtable():
     dic = eval(dic)
     return dic
 
+"""This class is for the Red max player"""
 class RedMaxPlayer(object):
     def __init__(self):
         self.initialized = False
-        rospy.init_node("red_max_player")
+        rospy.init_node("red_max_player") # initialize node
 
         # initialize action publisher
         self.action_pub = rospy.Publisher("/tictactoe/red_action", Action, queue_size=10)
@@ -44,6 +39,7 @@ class RedMaxPlayer(object):
         # initialize game
         self.game = Game()
 
+        # Wait for game node to be ready (will get game state msg)
         self.game_node_ready = False
 
         # get qtable
@@ -56,6 +52,7 @@ class RedMaxPlayer(object):
     # check whether it's the player's turn
     def game_state_callback(self, data):
         print("recieved game state in red")
+        # Don't make move if not initialized or the game ended
         if not self.initialized:
             return
         if data.game_end:
@@ -69,16 +66,19 @@ class RedMaxPlayer(object):
 
         # update board
         if self.game_node_ready:
+            # Game in progress, update player blue's turn
             assert(self.game.player == PLAYER_BLUE)
             self.game.move(data.last_move)
             self.publish_action()
         else:
+            # First message, empty board
             self.game_node_ready = True
             self.publish_action()
 
     # publish action if it's the player's turn
     def publish_action(self):
         print("In red publish action", self.is_active_player)
+        # Make sure it is red's turn
         if not self.is_active_player:
             return
 

@@ -59,7 +59,7 @@ EIGHT = '8'
 RED = 'red'
 BLUE = 'blue'
 
-
+"""This class is the script for the red robot in 2 robot implementation of tic tac toe (UNFINISHED)"""
 class red(object):
 
     def __init__(self):
@@ -113,6 +113,7 @@ class red(object):
         # tell dispatch_actions node to start publish actions
         rospy.sleep(1)
 
+    """Initialize starting pose"""
     def init_pose(self):
         init_pose = PoseWithCovariance()
         init_pose.pose.position.x = GRID_LOCATIONS[self.color][0]
@@ -123,6 +124,7 @@ class red(object):
         init_pose.pose.orientation.y = q[1]
         init_pose.pose.orientation.z = q[2]
         init_pose.pose.orientation.w = q[3]
+        # particle cloud covariance
         covariance = [0.16575166048810708, 0.005812119956448508, 0.0, 0.0, 0.0, 0.0,
                 0.005812119956448534, 0.163246490374612, 0.0, 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -199,6 +201,7 @@ class red(object):
         self.reset_gripper()
         self.state = STOP
 
+    """Move back"""
     def move_back(self):
         # move back away from dumbbell
         init_time = rospy.Time.now().to_sec()
@@ -247,6 +250,7 @@ class red(object):
             # spin until we see image
             self.pub_cmd_vel(0, 0.2)
 
+    """Move to x,y coordinate on grid"""
     def move_grid(self, xy):
         # Define a client for to send goal requests to the move_base server through a SimpleActionClient
         ac = actionlib.SimpleActionClient("/red/move_base", MoveBaseAction)

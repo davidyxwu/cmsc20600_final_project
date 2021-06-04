@@ -9,9 +9,11 @@ import numpy as np
 from cmsc20600_final_project.msg import GameState, Action, RobotInitialized
 from game import Game, PLAYER_BLUE, PLAYER_RED, PLAYER_SYMBOL
 
+"""This class implements the Game Node, the game engine in gazebo"""
 class GameNode(object):
 
     def __init__(self):
+        # Initialization
         self.initialized = False
 
         rospy.init_node("GameNode")
@@ -26,8 +28,10 @@ class GameNode(object):
         # Subscribe to red robot action
         self.red_action_sub = rospy.Subscriber("/tictactoe/red_action", Action, self.red_action_callback)
 
+        # Set up game
         self.game = Game()
 
+        # Keep track of actions recieved
         self.actions = []
 
         # Subscribe to node_status
@@ -36,11 +40,12 @@ class GameNode(object):
         self.initialized = True
         print("Game node initialized!")
 
-
+    """Listen to robot initialization status and send starting board state to players"""
     def node_status_callback(self, data):
         print("recieved node status")
         self.gamestate_pub.publish(GameState(last_player=PLAYER_BLUE, curr_player=PLAYER_RED, board=self.game.board))
 
+    """Callback function for blue player actions"""
     def blue_action_callback(self, data):
         print("Received blue action")
         if not self.initialized:
@@ -48,6 +53,7 @@ class GameNode(object):
         self.actions.append(data)
         self.update_game(data.position)
 
+    """Calback function for red player actions"""
     def red_action_callback(self, data):
         print("Received red action")
         if not self.initialized:
@@ -55,6 +61,7 @@ class GameNode(object):
         self.actions.append(data)
         self.update_game(data.position)
 
+    """Update the game based on the actions recieved, publish new game state"""
     def update_game(self, position):
         print(self.actions)
         last_player = self.game.player
