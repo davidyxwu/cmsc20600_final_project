@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # Qtable that stores the Q values for all encountered states
+# Value tale stores value estimates for encountered states
 from collections import defaultdict
 from game import Game
 import random
@@ -84,7 +85,7 @@ class Qtable(object):
     def size(self):
         return len(self.q_table)
 
-class Value(object):
+class Value(object): #this class is a hash table for storing value of a state
 
     def __init__(self):
         self.value = {}
