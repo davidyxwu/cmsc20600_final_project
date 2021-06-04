@@ -42,8 +42,14 @@ Picking up the dumbbell is done in the `reset_gripper` and `pick_up_gripper` fun
 
 ![kinematics](https://github.com/davidyxwu/cmsc20600_final_project/blob/main/media/kinematics_2x.gif)
 
+Robot picking up dumbbell
+
 ### Node and topic communication
 There are 4 agents involved: the game state manager, the red player, the blue player, and the robots. The robot first communicates to the game state manager using the `/nodestatus` topic to tell everyone it is ready to go. The game state manager then sends an initial game state through the `/tictactoe/gamestate` topic, telling the red and blue players that they can begin moving. The red and blue players make moves, each based on an updated game state and publish to `/tictactoe/red_action` and `/tictactoe/blue_action` respectively. The robot and game state manager listen to these messages to make moves.
+
+![nodes](https://github.com/davidyxwu/cmsc20600_final_project/blob/main/media/node_diagram.png)
+
+State diagram between nodes
 
 ## Project Architecture (Description of each script)
 ### Training and game engine 
