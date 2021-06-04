@@ -130,6 +130,7 @@ class Game(object):
 
         return False
 
+    # Get valid moves/open grids from the current board
     def get_valid_moves(self):
         return [i for i in range(len(self.board)) if self.valid_move(i)]
 
