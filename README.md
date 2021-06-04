@@ -51,7 +51,7 @@ There are 4 agents involved: the game state manager, the red player, the blue pl
 
 State diagram between nodes
 
-## Project Architecture (Description of each script)
+## System Architecture (Description of each script)
 ### Training and game engine 
 `train.py`: The training of the Q-learning algorithm takes place in this script. A Q-matrix hash table is loaded, and games are repeatedly simulated and Q-values are updated throughout according to the markov game algorithm. The gameplay simulation uses game.py to hold the game state, generate valid moves at each step, and update the moves of the game.
 
