@@ -2,7 +2,7 @@
 
 # Qtable that stores the Q values for all encountered states
 from collections import defaultdict
-from game import Game 
+from game import Game
 import random
 
 NO_ACTION = 9
@@ -15,13 +15,13 @@ class Qtable(object):
     def __str__(self):
         string = ""
         for key in self.q_table:
-            string += "key: " + str(key[0]) + ", action: " + str(key[1]) 
+            string += "key: " + str(key[0]) + ", action: " + str(key[1])
             string += " reward: " +  str(self.q_table[key]) + "\n"
         return string
 
-    # generate hash key for game state 
+    # generate hash key for game state
     def hash_key(self, board):
-        key = 0 
+        key = 0
         for i in range(len(board)):
             key += board[i] * (3 ** i)
         return key
@@ -30,7 +30,7 @@ class Qtable(object):
     def get_q_value(self, state, a, o):
         key = (state, o) if a == NO_ACTION else (state, a)
         if not key in self.q_table:
-            self.q_table[key] = self.default_value
+            return self.default_value
         return self.q_table[key]
 
     # get q value for existing game state, otherwise add state to table
@@ -44,7 +44,7 @@ class Qtable(object):
     # find existing keys for (current state + valid action)
     def find_existing_keys(self, game):
         state = self.hash_key(game.hash_board)
-        # get keys for all possible actions 
+        # get keys for all possible actions
         moves = game.get_valid_moves()
         new_keys = [(state, x) for x in moves]
 
@@ -104,15 +104,3 @@ class Value(object):
         if not key in self.value:
             self.value[key] = self.default_value #TODO: need to include no action?
         return self.value[key]
-
-
-
-
-
-
-
-
-    
-
-
-
