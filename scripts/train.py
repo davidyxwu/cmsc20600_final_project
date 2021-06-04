@@ -13,15 +13,26 @@ PLAYER_MIN = PLAYER_BLUE
 class Train(object):
 
     def __init__(self):
+        # variables for training algorithm
         self.alpha = 0.5  # 0.5
         self.gamma = 0.8
+
+        # how likely the robot explores a new state during training
+        self.explor = 0.25 
+
+        # training status 
         self.batch_size = 1e4
-        self.game = Game()
-        self.states = []
-        self.explor = 0.25
-        self.V = Value()
         self.training_step = 0
         self.game_count = 0
+
+        # start game
+        self.game = Game()
+        self.states = []
+        
+        # initialize value table
+        self.V = Value()     
+        # initialize Qtable
+        self.Q = Qtable()
 
         # variables for checking training status
         self.qtable_size = 0
@@ -30,8 +41,7 @@ class Train(object):
         self.convergence_criteria = 4e4
         self.end_train = False
 
-        self.Q = Qtable()
-
+    # calculates value based on Qtable
     def value(self, key):  # max_a min_o q(s,a,o)
 
         max_q = - 2 ** 64  # small number
@@ -94,10 +104,12 @@ class Train(object):
 
         return a, o
 
+    # execute training 
     def train(self):
         # start game
         self.game = Game()
         self.training_step = 0
+        # train in batches of size 1e4
         while self.training_step < self.batch_size:
             prev_state = self.Q.hash_key(self.game.hash_board)
             a, o = self.get_next_action() #next moves
@@ -132,6 +144,7 @@ class Train(object):
                 self.game_count += 1
                 continue
 
+            # if training reached convergence criteria 
             if self.ready_to_end():
                 self.end_train = True
 
@@ -141,6 +154,7 @@ class Train(object):
 
         # print("size of QTable: "+str(len(self.Q.q_table)))
 
+    # simulate a game run based on current Qtable
     def test(self):
         self.game = Game()
         while not self.game.game_end():
@@ -160,11 +174,12 @@ class Train(object):
         else:
             return False
 
-    # save qtable to txt file
+    # save Qtable to txt file
     def save(self):
         with open(r'qtable.txt', 'w+') as f:
             f.write(str(self.Q.q_table))
 
+    # train in batches until convergence criteria is reached or ctrl-C is pressed
     def run(self):
         try:
             self.start_time = time.time()
@@ -181,6 +196,8 @@ class Train(object):
             print("qtable size: " + str(len(self.Q.q_table)))
             print("train time: " + str(time.time() - self.start_time))
             self.save()
+
+        # simulate one min-max game based on current Qtable, and saves the Qtable
         except KeyboardInterrupt:
             print("Qtable size: " + str(len(self.Q.q_table)))
             print("Train time: " + str(time.time() - self.start_time))
