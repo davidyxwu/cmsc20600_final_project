@@ -130,59 +130,6 @@ class Game(object):
 
         return False
 
-    # check whether the current player has won
-    def has_won(self, grid):
-        if grid == -1:
-            return False
-
-        # check column
-        sum = 0
-        for i in range(3):
-            pos = (grid + 3 * i) % 9
-            if self.player == self.board[pos]:
-                sum += 1
-        if sum == 3:
-            return True
-
-        # check row
-        sum = 0
-        row = grid // 3
-        for i in range(3):
-            pos = row * 3 + i
-            if self.player == self.board[pos]:
-                sum += 1
-        if sum == 3:
-            return True
-
-        # check diagonals
-        sum1 = 0
-        for i in [0, 4, 8]:
-            if self.player == self.board[i]:
-                sum1 += 1
-        sum2 = 0
-        for i in [2, 4, 6]:
-            if self.player == self.board[i]:
-                sum2 += 1
-        if sum1 == 3 or sum2 == 3:
-            return True
-
-        # no winner yet
-        return False
-
-    # check whether the game ends after current move
-    def game_end(self):  # by defualt use last move
-        grid = self.last_move
-        if self.check_for_winner() or self.open_grid == 0:
-            return True
-        return False
-
-    # check if move is valid
-    def valid_move(self, grid):
-        # if the grid has not been occupied
-        if self.board[grid] == 0:
-            return True
-        return False
-
     def get_valid_moves(self):
         return [i for i in range(len(self.board)) if self.valid_move(i)]
 
