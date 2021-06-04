@@ -13,12 +13,12 @@ PLAYER_MIN = PLAYER_BLUE
 class Train(object):
 
     def __init__(self):
-        self.alpha = 1  # 0.5
+        self.alpha = 0.5  # 0.5
         self.gamma = 0.8
         self.batch_size = 1e4
         self.game = Game()
         self.states = []
-        self.explor = 0.5
+        self.explor = 0.25
         self.V = Value()
         self.training_step = 0
         self.game_count = 0
@@ -56,7 +56,7 @@ class Train(object):
         moves = self.game.get_valid_moves()
         # print(str(len(moves))+" available moves")
         indx = random.randint(0, len(moves) - 1)
-        explore = np.random.binomial(1, self.explor)
+        explore = np.random.binomial(1, self.explor) #this will determine whether agent explores (with prob self.explor)
         if explore:
             # if player O is active
             if self.game.player == PLAYER_MAX:
@@ -70,19 +70,19 @@ class Train(object):
                 o = moves[indx]
                 self.game.move(o)
                 # print("2 - x move to "+str(o))
-        else:
+        else: #otherwise do min max stategy
             state = self.Q.hash_key(self.game.hash_board)
 
             # if player O is active
             if self.game.player == PLAYER_MAX:
-                a = max(moves, key=lambda m: self.Q.get_q_value(state, m, NO_ACTION))
+                a = max(moves, key=lambda m: self.Q.get_q_value(state, m, NO_ACTION)) #find move w/ highest q val
                 o = NO_ACTION
                 self.game.move(a)
                 # print("3 - o move to "+str(a))
             # if player X is active
             else:
                 a = NO_ACTION
-                o = min(moves, key=lambda m: self.Q.get_q_value(state, NO_ACTION, m))
+                o = min(moves, key=lambda m: self.Q.get_q_value(state, NO_ACTION, m)) #find move w/ lowest q val
                 self.game.move(o)
                 # print("4 - x move to "+str(o))
 
@@ -100,15 +100,15 @@ class Train(object):
         self.training_step = 0
         while self.training_step < self.batch_size:
             prev_state = self.Q.hash_key(self.game.hash_board)
-            a, o = self.get_next_action()
+            a, o = self.get_next_action() #next moves
             next_state = self.Q.hash_key(self.game.hash_board)
-            r = self.game.reward(a) if o == NO_ACTION else self.game.reward(o)
+            r = self.game.reward(a) if o == NO_ACTION else self.game.reward(o) #reward will come from current player
 
             q = self.Q.get_q_value(prev_state, a, o)
-            q_new = int((1 - self.alpha) * q + self.alpha * (r + self.gamma * self.value(next_state)))
+            q_new = int((1 - self.alpha) * q + self.alpha * (r + self.gamma * self.value(next_state))) #update formula
             key = (prev_state, a) if o == NO_ACTION else (prev_state, o)
-            self.Q.q_table[key] = q_new
-            self.V.value[prev_state] = self.value(prev_state)
+            self.Q.q_table[key] = q_new #update q val
+            self.V.value[prev_state] = self.value(prev_state) #set value of state
             # if q_new != 0 and q != 0 and q_new != q:
             # print("old_q: "+str(q)+", new: "+str(q_new))
 
@@ -151,7 +151,7 @@ class Train(object):
             else:
                 move = min(valid_moves, key=lambda m: self.Q.get_q_value(state, NO_ACTION, m))
             self.game.move(move)
-        print(self.game)
+            print(self.game)
 
     # check whether the training is ready to be terminated
     def ready_to_end(self):
@@ -186,7 +186,7 @@ class Train(object):
             print("Train time: " + str(time.time() - self.start_time))
             print("Convergence cnt: " + str(self.convergence_cnt))
             print("Batch: " + str(b))
-            self.test
+            self.test()
             self.save()
             sys.exit()
 
