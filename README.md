@@ -102,6 +102,8 @@ However, the min/max players in the recorded random vs min/max gifs below are go
 ### Random vs random
 ![random vs random](https://github.com/davidyxwu/cmsc20600_final_project/blob/main/media/random_10x.gif)
 
+### Blue min vs Red max
+
 
 
 ### Two robot world gripper bug
